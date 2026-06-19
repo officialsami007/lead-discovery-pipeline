@@ -192,7 +192,34 @@ GET    /api/health
 
 ## Deployment
 
-The repo includes a `render.yaml` and is set up to deploy on a free tier using Render for the app and Neon for PostgreSQL. The production build serves the React app from the same Fastify server, and the worker runs alongside it. When deploying you set `DATABASE_URL` to the Neon connection string, set `APP_ORIGIN` to the final HTTPS url with no trailing slash, and provide a real `COOKIE_SECRET` of at least 32 characters. Cookies become Secure automatically once `APP_ORIGIN` is HTTPS.
+The app deploys on a free tier using **Render** for the service and **Neon** for PostgreSQL. The repo includes a `render.yaml` and a `Dockerfile`. The container runs migrations, seeds the demo data, then starts the API and the worker together, so one Render web service runs the whole system. The production build also serves the React app from the same Fastify server.
+
+### Database on Neon
+
+1. Create a project on Neon and copy the **direct** connection string (the one without `-pooler` in the host). The worker uses pg-boss, which needs session level Postgres features that Neon's pooled endpoint does not support, so the direct connection is the right one here.
+2. Use that string as `DATABASE_URL`. The app runs its own migrations and seed on boot, so the database does not need any manual setup beyond creating the project.
+
+### Render service
+
+Create a Web Service from this repo (Docker, free instance, health check `/api/health`) and set:
+
+| Variable        | Value                                                      |
+| --------------- | ---------------------------------------------------------- |
+| `DATABASE_URL`  | the Neon direct connection string                          |
+| `COOKIE_SECRET` | 32 or more random characters (Render can generate one)     |
+| `APP_ORIGIN`    | the final `https://...onrender.com` URL, no trailing slash |
+| `NODE_ENV`      | `production`                                               |
+| `PORT`          | `3000`                                                     |
+| `LOG_LEVEL`     | `info`                                                     |
+
+`APP_ORIGIN` is set after the first deploy once you know the URL, then redeploy. In production the API only accepts that origin and only marks the cookie `Secure` when it is HTTPS.
+
+### Two modes
+
+The same image runs in either mode, decided only by whether the provider keys are present:
+
+- **Mock (no API integration):** leave `TAVILY_API_KEY` and `GROQ_API_KEY` unset. Discovery uses the deterministic mocks and the UI shows a demo banner.
+- **Live (with API integration):** add `TAVILY_API_KEY` and `GROQ_API_KEY`. Discovery hits the real providers. Confirm with `GET /api/config`, which reports `live` once both are set.
 
 A live link will be added here once it is deployed.
 

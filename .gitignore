@@ -12,3 +12,8 @@ coverage/
 .playwright-mcp/
 *.png
 design-system/
+
+# Neon CLI / agent tooling (not part of the app)
+.neon
+.agents/
+skills-lock.json
