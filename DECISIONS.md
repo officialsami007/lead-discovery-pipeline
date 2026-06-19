@@ -1,27 +1,21 @@
-## Architecture decisions
+# Decisions
 
-### Why pg-boss over BullMQ or a hosted queue (SQS, Cloud Tasks)
+## Key architecture decisions (async job system)
 
-pg-boss stores jobs in the same PostgreSQL database used for application state. This eliminates a second infrastructure dependency and makes queue state queryable with the same tools as the rest of the data. BullMQ requires Redis and is otherwise comparable for our throughput. SQS or Cloud Tasks would remove operational burden in exchange for adding a cross-service hop, a second billing line, and a harder-to-reason-about failure boundary at job creation time.
+- **Two-stage async pipeline.** `POST /api/jobs` charges and creates the job, returns `job_id` immediately, and never blocks on discovery or verification. Work runs as two separate pg-boss queues — `discover-job` then `verify-job` — with the job row as the source of truth: `queued → discovering → verifying → completed | failed` (plus `cancelled`). Verification is its own stage, not a synchronous loop inside the HTTP handler.
+- **pg-boss on the same PostgreSQL.** Durable queue with no Redis or extra service; queue state is transactional with application data and queryable with the same tools. BullMQ (needs Redis) or SQS/Cloud Tasks (cross-service hop, second billing line) were not worth the added surface at this scale.
+- **Atomic credit charge.** Job insert + credit decrement (`WHERE credits > 0`) + ledger row commit in one transaction. An `Idempotency-Key` plus a unique `(organization_id, idempotency_key)` constraint dedupes double-clicks and retries — so a job cannot double-spend or be created twice.
+- **Tenant isolation enforced in the database.** `leads` and `credit_transactions` reference `search_jobs` via a composite foreign key `(job_id, organization_id)`, backed by `UNIQUE(id, organization_id)`. The engine rejects any cross-org `job_id`/`lead_id` even if an API-layer check is ever bypassed by a future code path.
+- **Idempotent discovery inserts.** Leads insert with `ON CONFLICT DO NOTHING` on `(job_id, provider_candidate_key)`. A worker retry, the crash-recovery hook, or stuck-job reconciliation can re-run discovery without duplicating leads — candidate keys are deterministic per job.
+- **SSE for progress, not polling.** One connection per active job; the API watches the job row and pushes an update only when `updated_at` changes. Lower load than interval polling, reuses the plain-HTTP Fastify stack, and needs no client-side timers or de-duplication.
 
-### Why composite foreign keys instead of API-layer-only tenant checks
+## What I'd do differently with 2 more days
 
-The `leads` table references `search_jobs` via `(job_id, organization_id)` rather than `job_id` alone. This means the database engine rejects any insert that provides a valid job ID from a different organization. An API-layer check would prevent this in normal operation but leaves a residual risk from a miscoded query or a future code path that bypasses the check. The composite key costs one extra column in the foreign key definition and nothing at runtime.
+- **Keyset (cursor) pagination instead of `OFFSET`.** Lists currently page with `LIMIT/OFFSET`, which rescans skipped rows and can duplicate or drop a lead when new rows arrive between page requests. I'd switch to a `(created_at, id)` keyset with a covering index for stable, index-only reads.
+- **Worker throughput and provider resilience.** Verification runs sequentially (`for` loop over pending leads); I'd process with bounded concurrency and wrap the real Tavily/Groq adapters in per-provider rate limiting, timeouts, retry classification (transient vs permanent), and a circuit breaker.
+- **Operational visibility and limits.** Add metrics and tracing (stage latency, queue depth, retry/failure rates) with alerting, and a per-org rate limit on `POST /api/jobs`. Today there are good structured logs but no metrics, dashboards, or throttle.
 
-### Why `ON CONFLICT DO NOTHING` instead of upsert on lead inserts
+## Risks accepted for the time box
 
-Discovery may run more than once for the same job because of the crash-recovery hook or post-commit reconciliation. A simple conflict-ignore insert on `(job_id, provider_candidate_key)` makes every retry safe without needing to decide which version of a candidate is "newer". Upsert would be correct too, but conflict-ignore is simpler and the candidate data is deterministic per job so neither approach loses information.
-
-### Why cursor pagination instead of offset
-
-`OFFSET n` requires the database to scan and discard `n` rows per page. More importantly, if a new lead is inserted between two page requests, offset pagination either duplicates or skips a row. Cursor pagination encodes `(created_at, id)` as an opaque token and queries `WHERE (created_at, id) < (cursor_t, cursor_id)`. Reads are index-only, pages are consistent even with concurrent writes, and the query plan uses the existing `leads_org_status_created_idx` without a full-table scan.
-
-### Why Server-Sent Events instead of polling for job progress
-
-The frontend previously polled `GET /api/jobs/:jobId` every 1.5 seconds. This generates constant requests even when nothing has changed. SSE opens a single HTTP connection per active job; the API polls the database every 500 ms and pushes updates only when `updated_at` changes. The client receives near-realtime updates with lower server load, no client-side timer management, and no duplicate-detection logic. Unlike WebSockets, SSE travels over plain HTTP and reuses the existing Fastify stack with no additional library.
-
-### Risks accepted for the time box
-
-- Demo login identifies a seeded user without a password; sessions are signed, HTTP-only, server-side, membership-checked, and appropriate for the assessment, but not production identity assurance.
-- Mock providers process candidates sequentially and do not model external API throttling, batching, quotas, or provider-specific retry semantics.
-- The credit top-up endpoint does not insert an audit ledger row; the `credit_transactions` table currently enforces `amount = -1` for search charges only. A real system would add a `credit_topup` transaction type and loosen the check constraint.
+- **Demo-grade authentication.** Login identifies a seeded user without a password. Sessions are signed, HTTP-only, server-side, and membership-checked — appropriate for the assessment, but not production identity assurance (no passwords/OAuth, MFA, or rotation).
+- **No throttling or scale modelling for real providers.** Verification is sequential and there is no per-org rate limit on starting searches, so a 50-candidate job is slow and a burst of submits is unbounded. Acceptable for the demo's small, deterministic batches; real load would need the concurrency, rate-limiting, and quota handling noted above.
