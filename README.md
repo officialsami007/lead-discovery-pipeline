@@ -10,16 +10,15 @@ Deployed on **Render** (one Docker web service running the API and worker) with 
 
 ## Tech stack
 
-| Layer              | Choice                                        |
-| ------------------ | --------------------------------------------- |
-| Frontend           | React 19 + Vite (single page app)             |
-| API                | Fastify 5 + Zod                               |
-| Worker and queue   | pg-boss (jobs stored in Postgres, no Redis)   |
-| Database           | PostgreSQL + Drizzle ORM                      |
-| Tests              | Vitest against a real throwaway Postgres      |
-| Language           | TypeScript, in an npm workspaces monorepo     |
-| Deployment         | Docker, Render (web service), Neon (Postgres) |
-| Optional providers | Tavily (web search), Groq (AI search)         |
+| Layer              | Choice                |
+| ------------------ | --------------------- |
+| Frontend           | React 19 + Vite       |
+| API                | Fastify 5 + Zod       |
+| Database           | PostgreSQL            |
+| Tests              | Vitest                |
+| Language           | TypeScript (monorepo) |
+| Deployment         | Docker, Render, Neon  |
+| Optional providers | Tavily, Groq          |
 
 ## Run it locally
 
@@ -44,7 +43,7 @@ npm run dev
 
 Frontend on http://localhost:5173, API on http://localhost:3000.
 
-To use real providers, add `TAVILY_API_KEY` (web search) and `GROQ_API_KEY` (AI search) to `.env`. Without them the app uses deterministic mock data and shows a demo banner.
+To use real providers, add `TAVILY_API_KEY` (web search) and `GROQ_API_KEY` (AI search) to `.env`. **Without them the app uses deterministic mock data and shows a demo banner.**
 
 ## Demo users
 
@@ -67,6 +66,12 @@ npm test
 21 tests covering tenant isolation, atomic credits, idempotency, and the discover and verify stages including crash recovery. The runner creates a uniquely named test database, runs the suite, and drops it afterwards.
 
 ## How it works
+
+It is a real async job system, not a request that blocks until the work is done:
+
+- **Non blocking start.** `POST /api/jobs` charges a credit, writes the job as `queued`, and returns the `job_id` immediately. No discovery or verification runs in the HTTP handler.
+- **Two durable stages.** Discover and verify are separate pg-boss queues, so each one runs, fails, and retries on its own instead of being collapsed into one synchronous loop.
+- **At least once, but idempotent.** pg-boss can deliver a job more than once, so lead inserts use `ON CONFLICT DO NOTHING` and a reconciler re drives anything left mid stage. Re running a stage never duplicates data.
 
 ```mermaid
 flowchart LR
@@ -131,12 +136,12 @@ Two of these were on the out of scope list, but I built them as a real example o
 - **Tavily web search (guided mode).** Turns the structured input into targeted search queries, calls the Tavily API, and parses the results into candidate leads, dropping noise like job postings and listicles.
 - **AI Search mode (Groq LLM + Tavily).** You type a natural language request. A Groq hosted LLM plans the queries, Tavily retrieves the sources, and the LLM then extracts structured people (name, company, title, email guess) from the returned page content. So the model does the parsing and the search engine does the retrieval. It lives in `apps/worker/src/providers/groq-tavily-discover.ts` and `RouterDiscoverProvider` routes guided versus AI requests.
 
-Both fall back to the mocks with no keys. I also added the optional bonuses: cancelling an in flight job, and a per organization rate limit on starting searches (five per minute, returns `429`).
+Both fall back to the mocks with no keys. I also added the optional bonuses: cancelling an in flight job, and a per organization rate limit on starting searches.
 
 ## Production next steps
 
-- **Sharper, more accurate results.** Better provider queries and stronger filtering, plus verification in parallel batches with timeouts and retries so large jobs stay quick.
-- **Database polish.** Tidy the naming, use a better id format, add the indexes the list queries need, and move the inbox to cursor based pagination.
+- **Sharper, more accurate results** Better provider queries and stronger filtering, plus verification in parallel batches with timeouts and retries so large jobs stay quick.
+- **Database polish** Tidy the naming, use a better id format, add the indexes the list queries need, and move the inbox to cursor based pagination.
 - **An admin area** to invite and manage users, change organization membership, and adjust credit balances, instead of editing the database by hand.
 - **Real authentication** with passwords or single sign on, multi factor where it matters, and session rotation.
-- **Failure handling and visibility.** Alerting and a small dashboard for stage durations, queue depth, retries, and failure rates, plus tooling to inspect and replay a stuck job.
+- **Failure handling and visibility** Alerting and a small dashboard for stage durations, queue depth, retries, and failure rates, plus tooling to inspect and replay a stuck job.

@@ -1,34 +1,34 @@
 const DEMO_USERS = [
   {
-    id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    id: '1A',
     name: 'Alex Morgan',
     email: 'alex@northstar.demo',
     organization: 'Northstar Hotels',
     credits: 10
   },
   {
-    id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    id: '1B',
     name: 'Bailey Chen',
     email: 'bailey@harborview.demo',
     organization: 'Harborview Group',
     credits: 2
   },
   {
-    id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    id: '1C',
     name: 'Casey Reyes',
     email: 'casey@meridian.demo',
     organization: 'Meridian Consulting',
     credits: 50
   },
   {
-    id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    id: '1D',
     name: 'Dana Park',
     email: 'dana@atlas.demo',
     organization: 'Atlas Group',
     credits: 100
   },
   {
-    id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    id: '1E',
     name: 'Jordan Silva',
     email: 'jordan@solaris.demo',
     organization: 'Solaris Ventures',
