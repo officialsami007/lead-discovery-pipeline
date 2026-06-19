@@ -65,19 +65,27 @@ export function Inbox({ leads, jobs, filter, loading, error, onFilterChange, onR
           <button
             type="button"
             className={filter === item ? 'active' : ''}
+            aria-pressed={filter === item}
             key={item}
             onClick={() => onFilterChange(item)}
           >
-            {item}
+            {item === 'all' ? 'All' : item.charAt(0).toUpperCase() + item.slice(1)}
           </button>
         ))}
       </div>
-      {error && <div className="alert alert-error">{error}</div>}
-      {!error && loading && leads.length === 0 && <div className="table-state">Loading leads…</div>}
+      {error && <div className="alert alert-error" role="alert">{error}</div>}
+      {!error && loading && leads.length === 0 && (
+        <div className="table-state" aria-live="polite">Loading leads…</div>
+      )}
       {!error && !loading && leads.length === 0 && (
         <div className="table-state">
+          <div className="empty-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
           <strong>No leads in this view</strong>
-          <span>Completed search results will appear here for this organization only.</span>
+          <span>Completed search results will appear here for this organisation only.</span>
         </div>
       )}
       {leads.length > 0 && (
@@ -119,19 +127,16 @@ export function Inbox({ leads, jobs, filter, loading, error, onFilterChange, onR
                         </td>
                         <td>
                           <a href={`mailto:${lead.email}`}>{lead.email}</a>
-                          {lead.rejectionReason && (
-                            <small className="rejection">{lead.rejectionReason}</small>
-                          )}
                         </td>
                         <td>
                           <span className={`status-pill status-${lead.status}`}>
                             {lead.status.replace('_raw', '')}
                           </span>
                         </td>
-                        <td>{lead.verificationScore ?? '—'}</td>
+                        <td>{lead.verificationScore != null ? `${lead.verificationScore}/100` : '—'}</td>
                         <td>
                           <a href={lead.sourceUrl} target="_blank" rel="noreferrer">
-                            Open ↗
+                            View source ↗
                           </a>
                         </td>
                       </tr>

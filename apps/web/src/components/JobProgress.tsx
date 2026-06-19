@@ -3,6 +3,22 @@ import type { JobDto } from '@lead/shared';
 
 const steps = ['queued', 'discovering', 'verifying', 'completed'] as const;
 
+const stepLabel: Record<(typeof steps)[number], string> = {
+  queued: 'Queued',
+  discovering: 'Finding',
+  verifying: 'Verifying',
+  completed: 'Done'
+};
+
+const statusLabel: Record<string, string> = {
+  queued: 'Queued',
+  discovering: 'Discovering',
+  verifying: 'Verifying',
+  completed: 'Completed',
+  failed: 'Failed',
+  cancelled: 'Cancelled'
+};
+
 interface JobProgressProps {
   job: JobDto | null;
   error: string | null;
@@ -16,9 +32,12 @@ export function JobProgress({ job, error, cancelling, onCancel }: JobProgressPro
   if (!job && !error) {
     return (
       <section className="panel progress-panel empty-progress">
-        <div className="empty-icon">↗</div>
+        <div className="empty-icon" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </div>
         <h2>Pipeline activity will appear here</h2>
-        <p>Start a search to watch durable backend stages and result counts update in real time.</p>
       </section>
     );
   }
@@ -55,7 +74,9 @@ export function JobProgress({ job, error, cancelling, onCancel }: JobProgressPro
           <h2 id="progress-title">Pipeline progress</h2>
         </div>
         <div className="progress-actions">
-          <span className={`status-pill status-${job.status}`}>{job.status}</span>
+          <span className={`status-pill status-${job.status}`}>
+            {statusLabel[job.status] ?? job.status}
+          </span>
           {active && !confirmCancel && (
             <button
               type="button"
@@ -68,7 +89,7 @@ export function JobProgress({ job, error, cancelling, onCancel }: JobProgressPro
           )}
           {active && confirmCancel && (
             <span className="cancel-confirm">
-              <span className="cancel-confirm-text">Cancel? Credits are not refunded.</span>
+              <span className="cancel-confirm-text">Credits are not refunded.</span>
               <button
                 type="button"
                 className="button button-danger"
@@ -88,12 +109,24 @@ export function JobProgress({ job, error, cancelling, onCancel }: JobProgressPro
           )}
         </div>
       </div>
-      <code className="job-id">{job.id}</code>
+      <div className="job-id-row">
+        <span className="job-id-label">Job ID</span>
+        <code className="job-id">{job.id}</code>
+      </div>
       <div className="stepper" aria-label={`Current status: ${job.status}`}>
         {steps.map((step, index) => (
-          <div className={`step ${index <= currentIndex ? 'active' : ''}`} key={step}>
-            <span>{index < currentIndex ? '✓' : index + 1}</span>
-            <strong>{step}</strong>
+          <div
+            className={`step${index <= currentIndex ? ' active' : ''}${index === currentIndex && active ? ' current' : ''}`}
+            key={step}
+          >
+            <span aria-hidden="true">
+              {index < currentIndex ? (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 13l4 4L19 7"/>
+                </svg>
+              ) : index + 1}
+            </span>
+            <strong>{stepLabel[step]}</strong>
           </div>
         ))}
       </div>
@@ -108,7 +141,7 @@ export function JobProgress({ job, error, cancelling, onCancel }: JobProgressPro
           The job was cancelled. Its search credit was not refunded.
         </div>
       )}
-      <div className="metric-grid">
+      <div className="metric-grid" aria-live="polite" aria-label="Job progress metrics">
         <div className={job.discoveredCount > 0 ? 'metric-nonzero' : ''}>
           <span>Discovered</span>
           <strong>{job.discoveredCount}</strong>

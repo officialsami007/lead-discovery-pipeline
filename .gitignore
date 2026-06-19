@@ -9,3 +9,6 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 .vite/
+.playwright-mcp/
+*.png
+design-system/

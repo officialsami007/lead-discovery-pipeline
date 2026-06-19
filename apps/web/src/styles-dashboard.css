@@ -10,18 +10,22 @@
   flex: 1;
   border: 0;
   border-radius: 9px;
-  padding: 8px 0;
+  padding: 9px 0;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   background: transparent;
-  color: #7b8582;
+  color: #4e5f5b;
   transition: background 0.15s, color 0.15s;
+}
+.mode-tab:hover:not(:disabled):not(.active) {
+  background: rgba(255,255,255,0.6);
+  color: #234b47;
 }
 .mode-tab.active {
   background: #fff;
   color: #234b47;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
 }
 .mode-tab:disabled {
   cursor: not-allowed;
@@ -100,15 +104,31 @@ textarea:focus {
 .button-primary {
   background: #234b47;
   color: white;
+  transition: background 0.15s;
+}
+.button-primary:hover:not(:disabled) {
+  background: #1c3c39;
 }
 .button-secondary {
   background: #eaf1ef;
   color: #315b55;
+  transition: background 0.15s;
+}
+.button-secondary:hover:not(:disabled) {
+  background: #dceae6;
 }
 .button-ghost {
   background: transparent;
   color: #315b55;
   border: 1px solid #d7e0dd;
+  transition: background 0.15s, border-color 0.15s;
+}
+.button-ghost:hover:not(:disabled) {
+  background: #f0f5f3;
+  border-color: #b8ccc8;
+}
+.button-danger-ghost:hover:not(:disabled) {
+  background: #fff0ee;
 }
 .alert {
   margin: 16px 0;
@@ -137,9 +157,17 @@ textarea:focus {
   justify-content: center;
   text-align: center;
   color: #76817e;
+  padding: 32px 24px;
+  gap: 4px;
 }
 .empty-progress h2 {
   color: #34423f;
+  margin: 10px 0 6px;
+}
+.empty-progress p {
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.6;
 }
 .empty-icon {
   width: 52px;
@@ -149,31 +177,59 @@ textarea:focus {
   border-radius: 16px;
   background: #edf5f2;
   color: #315b55;
-  font-size: 24px;
+}
+.job-id-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.job-id-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #89928f;
 }
 .job-id {
-  display: block;
+  display: inline-block;
   color: #68757e;
   background: #f5f7f6;
-  padding: 10px 12px;
-  border-radius: 10px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  word-break: break-all;
 }
 .stepper {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  display: flex;
+  align-items: flex-start;
   margin: 25px 0;
+  position: relative;
+}
+.stepper::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 12.5%;
+  right: 12.5%;
+  height: 2px;
+  background: #e8edeb;
+  z-index: 0;
 }
 .step {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 7px;
   color: #a0aaa7;
   text-transform: capitalize;
   font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  position: relative;
+  z-index: 1;
 }
 .step span {
   width: 28px;
@@ -182,6 +238,9 @@ textarea:focus {
   display: grid;
   place-items: center;
   background: #edf0ef;
+  position: relative;
+  z-index: 1;
+  transition: background 0.2s, color 0.2s;
 }
 .step.active {
   color: #234b47;
@@ -190,24 +249,33 @@ textarea:focus {
   background: #234b47;
   color: white;
 }
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0   rgba(35, 75, 71, 0.28); }
+  70%  { box-shadow: 0 0 0 7px rgba(35, 75, 71, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(35, 75, 71, 0); }
+}
+.step.current span {
+  animation: pulse-ring 1.8s ease-out infinite;
+}
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 .metric-grid > div {
   background: #f6f8f7;
-  border-radius: 12px;
-  padding: 14px;
+  border-radius: 10px;
+  padding: 11px 12px;
   display: flex;
   flex-direction: column;
 }
 .metric-grid span {
-  font-size: 11px;
+  font-size: 10px;
   color: #7e8986;
 }
 .metric-grid strong {
-  font-size: 27px;
+  font-size: 22px;
+  letter-spacing: -0.02em;
 }
 .status-pill {
   display: inline-flex;
@@ -245,12 +313,12 @@ textarea:focus {
   overflow: hidden;
 }
 .inbox-heading {
-  padding: 26px 26px 0;
+  padding: 20px 20px 0;
 }
 .filter-row {
   display: flex;
-  gap: 7px;
-  padding: 0 26px 18px;
+  gap: 6px;
+  padding: 0 20px 14px;
   border-bottom: 1px solid #edf0ef;
 }
 .filter-row button {
@@ -261,6 +329,11 @@ textarea:focus {
   padding: 8px 11px;
   text-transform: capitalize;
   font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+.filter-row button:hover:not(.active) {
+  background: #f0f4f3;
+  color: #34423f;
 }
 .filter-row button.active {
   background: #edf3f1;
@@ -269,15 +342,26 @@ textarea:focus {
 }
 .table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+.table-wrap::-webkit-scrollbar-track {
+  background: #f4f6f5;
+}
+.table-wrap::-webkit-scrollbar-thumb {
+  background: #c5d0cc;
+  border-radius: 3px;
 }
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 980px;
+  min-width: 900px;
 }
 th {
   text-align: left;
-  padding: 12px 18px;
+  padding: 10px 16px;
   color: #89928f;
   font-size: 10px;
   text-transform: uppercase;
@@ -285,10 +369,20 @@ th {
   background: #fafbfb;
 }
 td {
-  padding: 16px 18px;
+  padding: 13px 16px;
   border-top: 1px solid #edf0ef;
   font-size: 13px;
   vertical-align: top;
+  transition: background 0.15s;
+}
+tbody tr:hover:not(.group-header-row) td {
+  background: #f7faf9;
+}
+td a {
+  transition: color 0.15s;
+}
+td a:hover {
+  color: #1c3c39;
 }
 td strong,
 td small {
@@ -306,20 +400,35 @@ td .rejection {
   min-height: 210px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   justify-content: center;
   color: #7d8885;
+  padding: 32px 20px;
+}
+.table-state .empty-icon {
+  margin-bottom: 8px;
 }
 .table-state strong {
   color: #43514d;
 }
+.table-state span {
+  font-size: 13px;
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.5;
+}
 @media (max-width: 980px) {
   .login-shell {
     grid-template-columns: 1fr;
+    min-height: 100vh;
   }
   .login-intro {
-    min-height: 520px;
+    min-height: 320px;
+  }
+  .login-panel {
+    overflow-y: auto;
+    justify-content: flex-start;
   }
   .dashboard-grid {
     grid-template-columns: 1fr;
@@ -328,10 +437,13 @@ td .rejection {
 @media (max-width: 680px) {
   .login-intro,
   .login-panel {
-    padding: 34px 22px;
+    padding: 28px 20px;
   }
   .login-intro h1 {
-    font-size: 43px;
+    font-size: 28px;
+  }
+  .login-intro {
+    min-height: 260px;
   }
   .topbar {
     padding: 0 15px;
@@ -340,7 +452,7 @@ td .rejection {
     display: none;
   }
   .dashboard {
-    padding: 30px 15px 60px;
+    padding: 20px 14px 44px;
   }
   .hero-row {
     align-items: stretch;
@@ -363,7 +475,7 @@ td .rejection {
     flex-direction: column;
   }
   .demo-card {
-    grid-template-columns: 44px 1fr;
+    grid-template-columns: 42px 1fr;
     grid-template-areas: 'avatar copy' 'badge arrow';
   }
   .credit-badge {
@@ -386,6 +498,10 @@ td .rejection {
   background: #eef0f2;
   color: #5f6972;
 }
+th:last-child,
+td:last-child {
+  min-width: 130px;
+}
 .group-header-row td {
   background: #f3f6f5;
   padding: 9px 18px;
@@ -400,4 +516,130 @@ td .rejection {
   font-size: 11px;
   color: #7e8986;
   margin-left: 10px;
+}
+
+/* ── Dashboard entrance animations ──────────────────────────────────── */
+.topbar        { animation: fadeIn    0.30s ease       both; }
+.hero-row      { animation: fadeInUp  0.38s ease 0.08s both; }
+.search-panel  { animation: fadeInUp  0.38s ease 0.15s both; }
+.progress-panel{ animation: fadeInUp  0.38s ease 0.20s both; }
+.inbox-panel   { animation: fadeInUp  0.38s ease 0.27s both; }
+
+/* ── Demo mode notice badge ──────────────────────────────────────────── */
+.demo-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #856514;
+  background: #fff5dd;
+  border: 1px solid #f0d97a;
+  border-radius: 8px;
+  padding: 5px 10px;
+  width: fit-content;
+}
+
+/* ── Loading spinner ────────────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 7px;
+}
+.button-ghost .spinner,
+.button-secondary .spinner {
+  border-color: rgba(35, 75, 71, 0.25);
+  border-top-color: #234b47;
+}
+
+/* ── Boot screen ─────────────────────────────────────────────────────── */
+.boot-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: #59656f;
+  background: #f4f6f8;
+}
+.boot-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.boot-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #dde6e4;
+  border-top-color: #234b47;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── P0: Previously undefined classes ─────────────────────────────── */
+
+/* Validation error messages below form fields */
+.field-error {
+  color: #983f37;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Low-credit warning chip (≤ 5 credits) */
+.credits-chip.low {
+  background: #fff5dd;
+  color: #856514;
+}
+
+/* Cancel-confirmation inline UI */
+.cancel-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.cancel-confirm-text {
+  font-size: 12px;
+  color: #68757e;
+}
+
+/* Danger confirm button (irreversible action) */
+.button-danger {
+  background: #c0392b;
+  color: white;
+  border: 0;
+}
+.button-danger:hover:not(:disabled) {
+  background: #a93226;
+}
+
+/* Metric card highlighting when count > 0 */
+.metric-nonzero {
+  background: #f0f7f5 !important;
+}
+.metric-nonzero.metric-verified {
+  background: #e7f4ed !important;
+}
+.metric-nonzero.metric-rejected {
+  background: #fff0ee !important;
+}
+
+/* Completion summary line below metric grid */
+.metric-summary {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #4a5b59;
+  padding: 10px 14px;
+  background: #f0f7f5;
+  border-radius: 10px;
 }

@@ -135,10 +135,8 @@ export function SearchForm({ credits, submitting, jobActive, canRetry, error, on
                 disabled={blocked}
                 aria-invalid={!!getFieldError('companies')}
               />
-              {getFieldError('companies') ? (
+              {getFieldError('companies') && (
                 <small className="field-error">{getFieldError('companies')}</small>
-              ) : (
-                <small>Separate multiple values with commas or new lines.</small>
               )}
             </label>
             <label>
@@ -152,10 +150,8 @@ export function SearchForm({ credits, submitting, jobActive, canRetry, error, on
                 disabled={blocked}
                 aria-invalid={!!getFieldError('roles')}
               />
-              {getFieldError('roles') ? (
+              {getFieldError('roles') && (
                 <small className="field-error">{getFieldError('roles')}</small>
-              ) : (
-                <small>Use specific roles for more focused results.</small>
               )}
             </label>
             <label>
@@ -168,10 +164,8 @@ export function SearchForm({ credits, submitting, jobActive, canRetry, error, on
                 disabled={blocked}
                 aria-invalid={!!getFieldError('region')}
               />
-              {getFieldError('region') ? (
+              {getFieldError('region') && (
                 <small className="field-error">{getFieldError('region')}</small>
-              ) : (
-                <small>Country, city, or market region.</small>
               )}
             </label>
           </div>
@@ -189,35 +183,23 @@ export function SearchForm({ credits, submitting, jobActive, canRetry, error, on
                 className="ai-query-textarea"
                 aria-invalid={!!getFieldError('aiQuery')}
               />
-              {getFieldError('aiQuery') ? (
+              {getFieldError('aiQuery') && (
                 <small className="field-error">{getFieldError('aiQuery')}</small>
-              ) : (
-                <small>
-                  The AI agent will search the web and extract matching contacts.
-                  {!import.meta.env.VITE_GROQ_ENABLED && (
-                    <> Demo mode: real API keys not configured — mock results will be returned.</>
-                  )}
-                </small>
               )}
             </label>
           </div>
         )}
 
         {jobActive && (
-          <div className="alert alert-info">
+          <div className="alert alert-info" role="status">
             A search is running. Wait for it to complete or cancel it before starting a new one.
           </div>
         )}
-        {!jobActive && !submitAttempted && !Object.values(touched).some(Boolean) && error && (
-          <div className="alert alert-error">{error}</div>
+        {!jobActive && error && (
+          <div className="alert alert-error" role="alert">{error}</div>
         )}
 
         <div className="form-actions">
-          <p>
-            {mode === 'guided'
-              ? 'Each intentional search uses exactly one organization credit.'
-              : 'AI Search uses one credit. The agent may run several web searches to find leads.'}
-          </p>
           <div className="button-row">
             {canRetry && !jobActive && (
               <button
@@ -233,9 +215,11 @@ export function SearchForm({ credits, submitting, jobActive, canRetry, error, on
               className="button button-primary"
               type="submit"
               disabled={blocked}
+              aria-busy={submitting}
             >
+              {submitting && <span className="spinner" aria-hidden="true" />}
               {submitting
-                ? 'Starting search…'
+                ? 'Starting…'
                 : jobActive
                   ? 'Search in progress…'
                   : credits === 0

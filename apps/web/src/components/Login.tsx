@@ -40,9 +40,10 @@ interface LoginProps {
   onLogin: (userId: string) => Promise<void>;
   loadingUserId: string | null;
   error: string | null;
+  knownCredits?: Record<string, number>;
 }
 
-export function Login({ onLogin, loadingUserId, error }: LoginProps) {
+export function Login({ onLogin, loadingUserId, error, knownCredits }: LoginProps) {
   return (
     <main className="login-shell">
       <section className="login-intro">
@@ -50,14 +51,23 @@ export function Login({ onLogin, loadingUserId, error }: LoginProps) {
         <p className="eyebrow">Leadflow Console</p>
         <h1>Discover qualified leads without losing control of the pipeline.</h1>
         <p className="login-copy">
-          A durable, multi-tenant search workflow with atomic credits, asynchronous discovery,
-          verification, and a review-ready inbox.
+          Leads update in real time, from discovery to verification, so your inbox always holds
+          qualified contacts ready for outreach.
         </p>
         <div className="flow-preview" aria-label="Pipeline stages">
           <span>Search</span>
-          <i /> <span>Discover</span>
-          <i /> <span>Verify</span>
-          <i /> <span>Inbox</span>
+          <svg className="flow-sep" aria-hidden="true" width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 5h15M11 1l5 4-5 4"/>
+          </svg>
+          <span>Discover</span>
+          <svg className="flow-sep" aria-hidden="true" width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 5h15M11 1l5 4-5 4"/>
+          </svg>
+          <span>Verify</span>
+          <svg className="flow-sep" aria-hidden="true" width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 5h15M11 1l5 4-5 4"/>
+          </svg>
+          <span>Inbox</span>
         </div>
       </section>
       <section className="login-panel" aria-labelledby="demo-login-title">
@@ -87,9 +97,18 @@ export function Login({ onLogin, loadingUserId, error }: LoginProps) {
                 <small>{user.email}</small>
                 <span>{user.organization}</span>
               </span>
-              <span className="credit-badge">{user.credits} credits</span>
+              <span className="credit-badge">
+                {knownCredits?.[user.id] ?? user.credits} credits
+              </span>
               <span className="login-arrow">
-                {loadingUserId === user.id ? 'Signing in…' : 'Continue →'}
+                {loadingUserId === user.id ? 'Signing in…' : (
+                  <>
+                    Continue
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </>
+                )}
               </span>
             </button>
           ))}

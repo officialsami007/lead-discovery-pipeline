@@ -30,12 +30,19 @@ button {
 a {
   color: #315b55;
 }
-.boot-screen {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  color: #59656f;
+
+/* ── Global focus-visible ring (keyboard users) ── */
+:focus-visible {
+  outline: 2px solid #4d7c74;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
+/* Inputs get focus handled via box-shadow instead */
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
+/* boot-screen defined in styles-dashboard.css */
 .brand-mark {
   width: 42px;
   height: 42px;
@@ -66,7 +73,7 @@ a {
   background: #edf1ef;
 }
 .login-intro {
-  padding: clamp(48px, 8vw, 110px);
+  padding: clamp(32px, 5vw, 72px);
   background:
     radial-gradient(circle at 80% 20%, #3d7068 0, transparent 32%),
     linear-gradient(145deg, #173c39, #28554f 62%, #122c2a);
@@ -77,70 +84,78 @@ a {
 }
 .login-intro .brand-mark {
   background: rgba(255, 255, 255, 0.14);
-  margin-bottom: 56px;
+  margin-bottom: 30px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.18), 0 0 28px rgba(255,255,255,0.07);
 }
 .login-intro .eyebrow {
   color: #abd0c8;
 }
 .login-intro h1 {
-  max-width: 680px;
-  font-size: clamp(42px, 5vw, 74px);
-  line-height: 0.98;
-  letter-spacing: -0.055em;
+  max-width: 580px;
+  font-size: clamp(28px, 3.2vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
   margin: 0;
 }
 .login-copy {
-  max-width: 610px;
+  max-width: 520px;
   color: #c9dcd8;
-  font-size: 18px;
-  line-height: 1.7;
-  margin: 28px 0 45px;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 14px 0 24px;
 }
 .flow-preview {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
   color: #d9e9e5;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 .flow-preview span {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 999px;
-  padding: 9px 13px;
+  padding: 6px 11px;
 }
-.flow-preview i {
-  width: 30px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.3);
+.flow-preview .flow-sep {
+  color: rgba(255, 255, 255, 0.38);
+  flex-shrink: 0;
+  display: block;
 }
 .login-panel {
-  padding: clamp(40px, 7vw, 96px);
+  padding: clamp(28px, 4.5vw, 60px);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  background: white;
 }
 .login-panel h2 {
-  font-size: 34px;
-  letter-spacing: -0.04em;
+  font-size: 24px;
+  letter-spacing: -0.035em;
   margin: 0;
+  color: #18202a;
+}
+.login-panel > .muted {
+  font-size: 13px;
+  margin: 7px 0 0;
 }
 .demo-grid {
   display: grid;
-  gap: 14px;
-  margin-top: 30px;
+  gap: 8px;
+  margin-top: 14px;
 }
 .demo-card {
-  border: 1px solid #d4ddda;
-  background: rgba(255, 255, 255, 0.78);
-  border-radius: 18px;
-  padding: 20px;
+  border: 1px solid #dde5e2;
+  background: white;
+  border-radius: 14px;
+  padding: 12px 16px;
   display: grid;
-  grid-template-columns: 50px 1fr auto;
+  grid-template-columns: 42px 1fr auto;
   grid-template-areas: 'avatar copy badge' 'avatar copy arrow';
-  gap: 4px 15px;
+  gap: 3px 13px;
   text-align: left;
+  box-shadow: 0 1px 4px rgba(28, 66, 61, 0.06);
   transition:
     transform 0.18s ease,
     border-color 0.18s ease,
@@ -148,42 +163,58 @@ a {
 }
 .demo-card:hover:not(:disabled) {
   transform: translateY(-2px);
-  border-color: #789f98;
-  box-shadow: 0 12px 30px rgba(28, 66, 61, 0.1);
+  border-color: #6fa098;
+  box-shadow: 0 8px 24px rgba(28, 66, 61, 0.12);
+}
+.demo-card:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 .avatar {
   grid-area: avatar;
-  width: 50px;
-  height: 50px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #e5efec;
-  color: #28554f;
+  background: linear-gradient(135deg, #c4dfd8, #daeee8);
+  color: #1c3c38;
   font-weight: 800;
+  font-size: 13px;
+  letter-spacing: -0.02em;
+  border: 1px solid rgba(35, 75, 71, 0.12);
 }
 .demo-card-copy {
   grid-area: copy;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+}
+.demo-card-copy strong {
+  font-size: 14px;
+  color: #18202a;
+  letter-spacing: -0.01em;
 }
 .demo-card-copy small {
-  color: #7a858c;
+  font-size: 11px;
+  color: #8d9a97;
 }
 .demo-card-copy span {
-  font-size: 13px;
+  font-size: 12px;
   color: #4a5b59;
+  font-weight: 600;
 }
 .credit-badge {
   grid-area: badge;
   justify-self: end;
-  font-size: 12px;
-  padding: 6px 9px;
+  font-size: 11px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: #eff5f3;
+  background: #edf5f2;
   color: #315b55;
   font-weight: 700;
+  border: 1px solid #cde4dc;
+  letter-spacing: 0.01em;
 }
 .login-arrow {
   grid-area: arrow;
@@ -191,11 +222,19 @@ a {
   align-self: end;
   color: #315b55;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.18s, gap 0.18s;
+}
+.demo-card:hover:not(:disabled) .login-arrow {
+  color: #1c3c39;
+  gap: 7px;
 }
 .topbar {
-  height: 76px;
-  padding: 0 clamp(20px, 5vw, 72px);
+  height: 60px;
+  padding: 0 clamp(16px, 4vw, 56px);
   background: rgba(255, 255, 255, 0.92);
   border-bottom: 1px solid #e3e8e6;
   display: flex;
@@ -220,96 +259,163 @@ a {
 .brand span,
 .identity span {
   color: #7a858c;
-  font-size: 12px;
+  font-size: 11px;
+}
+.identity strong {
+  font-size: 13px;
+  color: #18202a;
 }
 .identity {
-  text-align: right;
+  text-align: left;
+}
+.user-avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #c4dfd8, #daeee8);
+  color: #1c3c38;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0;
+  border: 1px solid rgba(35, 75, 71, 0.14);
+  flex-shrink: 0;
+  line-height: 1;
 }
 .identity button {
   border: 0;
   background: #eef3f1;
   color: #315b55;
   border-radius: 10px;
-  padding: 10px 13px;
+  padding: 9px 13px;
+  font-size: 13px;
   font-weight: 700;
+  transition: background 0.15s;
+}
+.identity button:hover {
+  background: #ddeae5;
 }
 .dashboard {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 46px clamp(20px, 5vw, 72px) 80px;
+  padding: 28px clamp(16px, 4vw, 56px) 52px;
 }
 .hero-row {
   display: flex;
   justify-content: space-between;
   align-items: end;
-  gap: 30px;
-  margin-bottom: 30px;
+  gap: 20px;
+  margin-bottom: 18px;
 }
 .hero-row h1 {
   margin: 0;
-  font-size: clamp(36px, 4vw, 58px);
-  letter-spacing: -0.055em;
-  line-height: 1;
+  font-size: clamp(22px, 2.4vw, 36px);
+  letter-spacing: -0.045em;
+  line-height: 1.05;
 }
 .hero-row > div > p:last-child {
   color: #68757e;
-  margin: 16px 0 0;
+  margin: 8px 0 0;
+  font-size: 13px;
 }
 .hero-stat {
-  min-width: 180px;
+  min-width: 148px;
   background: #234b47;
   color: white;
-  padding: 20px 24px;
-  border-radius: 18px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
+  padding: 13px 17px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-.hero-stat span,
-.hero-stat small {
-  grid-column: 1;
+.hero-stat span {
   color: #b9d0cc;
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 .hero-stat strong {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  font-size: 42px;
+  font-size: 32px;
   line-height: 1;
+  letter-spacing: -0.04em;
+}
+.hero-stat small {
+  color: #b9d0cc;
+  font-size: 11px;
 }
 .panel {
   background: white;
   border: 1px solid #e1e6e4;
-  border-radius: 20px;
-  padding: 26px;
-  box-shadow: 0 10px 30px rgba(42, 54, 51, 0.045);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(42, 54, 51, 0.04);
 }
 .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(350px, 0.82fr);
-  gap: 22px;
-  margin-bottom: 22px;
+  grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+  gap: 16px;
+  margin-bottom: 16px;
 }
 .panel-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 22px;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 .panel h2 {
   margin: 0;
-  font-size: 23px;
-  letter-spacing: -0.035em;
+  font-size: 18px;
+  letter-spacing: -0.03em;
 }
 .credits-chip {
   border-radius: 999px;
   background: #edf5f2;
   color: #315b55;
-  padding: 9px 13px;
-  font-size: 13px;
+  padding: 6px 11px;
+  font-size: 12px;
 }
 .credits-chip.empty {
   background: #fff0ee;
   color: #a3473e;
+}
+
+/* ── Entrance animations ──────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Login intro — each child staggers in */
+.login-intro .brand-mark  { animation: fadeInUp 0.5s ease 0.00s both; }
+.login-intro .eyebrow     { animation: fadeInUp 0.5s ease 0.07s both; }
+.login-intro h1           { animation: fadeInUp 0.5s ease 0.14s both; }
+.login-intro .login-copy  { animation: fadeInUp 0.5s ease 0.22s both; }
+.login-intro .flow-preview{ animation: fadeInUp 0.5s ease 0.30s both; }
+
+/* Login panel header */
+.login-panel > .eyebrow   { animation: fadeInUp 0.42s ease 0.10s both; }
+.login-panel > h2         { animation: fadeInUp 0.42s ease 0.17s both; }
+.login-panel > .muted     { animation: fadeInUp 0.42s ease 0.23s both; }
+
+/* Demo cards stagger */
+.demo-grid > :nth-child(1) { animation: fadeInUp 0.36s ease 0.26s both; }
+.demo-grid > :nth-child(2) { animation: fadeInUp 0.36s ease 0.32s both; }
+.demo-grid > :nth-child(3) { animation: fadeInUp 0.36s ease 0.38s both; }
+.demo-grid > :nth-child(4) { animation: fadeInUp 0.36s ease 0.44s both; }
+.demo-grid > :nth-child(5) { animation: fadeInUp 0.36s ease 0.50s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
