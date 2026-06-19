@@ -19,7 +19,14 @@ interface SearchFormProps {
   onSubmit: (input: JobSearchInput, retry: boolean) => Promise<void>;
 }
 
-export function SearchForm({ credits, submitting, jobActive, canRetry, error, onSubmit }: SearchFormProps) {
+export function SearchForm({
+  credits,
+  submitting,
+  jobActive,
+  canRetry,
+  error,
+  onSubmit
+}: SearchFormProps) {
   const [mode, setMode] = useState<SearchMode>('guided');
 
   // Guided mode state
@@ -44,10 +51,8 @@ export function SearchForm({ credits, submitting, jobActive, canRetry, error, on
     if (!shouldShow) return null;
     if (field === 'companies' && guidedInput.companiesOrKeywords.length === 0)
       return 'Add at least one company or keyword.';
-    if (field === 'roles' && guidedInput.roles.length === 0)
-      return 'Add at least one target role.';
-    if (field === 'region' && !guidedInput.region)
-      return 'Add a target region.';
+    if (field === 'roles' && guidedInput.roles.length === 0) return 'Add at least one target role.';
+    if (field === 'region' && !guidedInput.region) return 'Add a target region.';
     if (field === 'aiQuery' && aiQuery.trim().length < 10)
       return 'Describe your search in at least 10 characters.';
     return null;
@@ -196,7 +201,9 @@ export function SearchForm({ credits, submitting, jobActive, canRetry, error, on
           </div>
         )}
         {!jobActive && error && (
-          <div className="alert alert-error" role="alert">{error}</div>
+          <div className="alert alert-error" role="alert">
+            {error}
+          </div>
         )}
 
         <div className="form-actions">

@@ -132,7 +132,10 @@ assert(
 // ── 8. Wait for completion ───────────────────────────────────────────────────
 console.log('\n8. Waiting for pipeline to complete (up to 30s)…');
 const finalJob = await poll(
-  () => req<{ job: { status: string; discoveredCount: number; verifiedCount: number } }>(`/api/jobs/${jobId}`),
+  () =>
+    req<{ job: { status: string; discoveredCount: number; verifiedCount: number } }>(
+      `/api/jobs/${jobId}`
+    ),
   (r) => ['completed', 'failed', 'cancelled'].includes(r.body.job.status)
 );
 assert(finalJob.body.job.status === 'completed', 'Job reached completed status');

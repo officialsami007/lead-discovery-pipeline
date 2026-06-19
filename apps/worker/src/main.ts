@@ -1,6 +1,8 @@
-import 'dotenv/config';
-import { createDatabaseClient, databaseUrlFromEnv } from '@lead/db';
+import { createDatabaseClient, databaseUrlFromEnv, loadRootEnv } from '@lead/db';
 import { QUEUE_NAMES, type QueueJobPayload } from '@lead/shared';
+
+loadRootEnv();
+
 import pino from 'pino';
 import { z } from 'zod';
 import {

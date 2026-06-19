@@ -33,7 +33,15 @@ interface InboxProps {
   onRefresh: () => void;
 }
 
-export function Inbox({ leads, jobs, filter, loading, error, onFilterChange, onRefresh }: InboxProps) {
+export function Inbox({
+  leads,
+  jobs,
+  filter,
+  loading,
+  error,
+  onFilterChange,
+  onRefresh
+}: InboxProps) {
   const jobMap = new Map(jobs.map((j) => [j.id, j]));
 
   // Group leads by jobId, preserving insertion order (newest job first)
@@ -73,15 +81,30 @@ export function Inbox({ leads, jobs, filter, loading, error, onFilterChange, onR
           </button>
         ))}
       </div>
-      {error && <div className="alert alert-error" role="alert">{error}</div>}
+      {error && (
+        <div className="alert alert-error" role="alert">
+          {error}
+        </div>
+      )}
       {!error && loading && leads.length === 0 && (
-        <div className="table-state" aria-live="polite">Loading leads…</div>
+        <div className="table-state" aria-live="polite">
+          Loading leads…
+        </div>
       )}
       {!error && !loading && leads.length === 0 && (
         <div className="table-state">
           <div className="empty-icon" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
             </svg>
           </div>
           <strong>No leads in this view</strong>
@@ -132,8 +155,13 @@ export function Inbox({ leads, jobs, filter, loading, error, onFilterChange, onR
                           <span className={`status-pill status-${lead.status}`}>
                             {lead.status.replace('_raw', '')}
                           </span>
+                          {lead.status === 'rejected' && lead.rejectionReason && (
+                            <small className="rejection">{lead.rejectionReason}</small>
+                          )}
                         </td>
-                        <td>{lead.verificationScore != null ? `${lead.verificationScore}/100` : '—'}</td>
+                        <td>
+                          {lead.verificationScore != null ? `${lead.verificationScore}/100` : '—'}
+                        </td>
                         <td>
                           <a href={lead.sourceUrl} target="_blank" rel="noreferrer">
                             View source ↗

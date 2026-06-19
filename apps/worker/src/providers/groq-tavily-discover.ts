@@ -1,5 +1,10 @@
 import { createHash } from 'node:crypto';
-import type { CandidateLead, DiscoverContext, DiscoverProvider, JobSearchInput } from '@lead/shared';
+import type {
+  CandidateLead,
+  DiscoverContext,
+  DiscoverProvider,
+  JobSearchInput
+} from '@lead/shared';
 import { isAISearchRequest } from '@lead/shared';
 import { tavily } from '@tavily/core';
 import Groq from 'groq-sdk';
@@ -8,30 +13,82 @@ import { constructEmail, isJobPostingContent, isJobPostingUrl } from './tavily-d
 
 // Mirrors the excluded domain list in tavily-discover — kept in sync manually
 const EXCLUDED_DOMAINS = [
-  'indeed.com', 'glassdoor.com', 'monster.com', 'ziprecruiter.com',
-  'careerbuilder.com', 'simplyhired.com', 'seek.com', 'jobstreet.com',
-  'jobsdb.com', 'reed.co.uk', 'totaljobs.com', 'dice.com',
-  'lever.co', 'greenhouse.io', 'myworkdayjobs.com', 'workable.com',
-  'smartrecruiters.com', 'recruitee.com', 'jobs.com', 'themuse.com',
-  'remoteok.com', 'weworkremotely.com', 'remotive.com', 'remote.co',
-  'remotifyeurope.com', 'jobgether.com', 'himalayas.app',
-  'escapethecity.org', 'nextleveljobs.eu', 'efinancialcareers.com',
-  'angel.co', 'wellfound.com', 'builtin.com',
-  'datacaptive.com', 'leadiq.com', 'apollo.io', 'rocketreach.co',
+  'indeed.com',
+  'glassdoor.com',
+  'monster.com',
+  'ziprecruiter.com',
+  'careerbuilder.com',
+  'simplyhired.com',
+  'seek.com',
+  'jobstreet.com',
+  'jobsdb.com',
+  'reed.co.uk',
+  'totaljobs.com',
+  'dice.com',
+  'lever.co',
+  'greenhouse.io',
+  'myworkdayjobs.com',
+  'workable.com',
+  'smartrecruiters.com',
+  'recruitee.com',
+  'jobs.com',
+  'themuse.com',
+  'remoteok.com',
+  'weworkremotely.com',
+  'remotive.com',
+  'remote.co',
+  'remotifyeurope.com',
+  'jobgether.com',
+  'himalayas.app',
+  'escapethecity.org',
+  'nextleveljobs.eu',
+  'efinancialcareers.com',
+  'angel.co',
+  'wellfound.com',
+  'builtin.com',
+  'datacaptive.com',
+  'leadiq.com',
+  'apollo.io',
+  'rocketreach.co'
 ];
 
 // Placeholder / fake domains the model tends to invent — never accept these
 const JUNK_EMAIL_DOMAINS = new Set([
-  'email.com', 'example.com', 'example.org', 'example.net', 'domain.com',
-  'company.com', 'companydomain.com', 'yourcompany.com', 'mycompany.com',
-  'test.com', 'acme.com', 'none.com', 'email.address', 'website.com',
-  'companyname.com', 'business.com',
+  'email.com',
+  'example.com',
+  'example.org',
+  'example.net',
+  'domain.com',
+  'company.com',
+  'companydomain.com',
+  'yourcompany.com',
+  'mycompany.com',
+  'test.com',
+  'acme.com',
+  'none.com',
+  'email.address',
+  'website.com',
+  'companyname.com',
+  'business.com'
 ]);
 
 const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const GENERIC_LOCALPARTS = new Set([
-  'info', 'contact', 'sales', 'hello', 'support', 'enquiries', 'enquiry',
-  'hr', 'careers', 'admin', 'office', 'press', 'media', 'team', 'help',
+  'info',
+  'contact',
+  'sales',
+  'hello',
+  'support',
+  'enquiries',
+  'enquiry',
+  'hr',
+  'careers',
+  'admin',
+  'office',
+  'press',
+  'media',
+  'team',
+  'help'
 ]);
 
 type TavilyClient = ReturnType<typeof tavily>;
@@ -164,7 +221,13 @@ export class GroqTavilyDiscoverProvider implements DiscoverProvider {
       const raw = parseLeadsFromContent(final.choices[0]?.message?.content ?? '', context.jobId);
       const { leads, drops } = refineLeads(raw, seenResults);
       this.logger.info(
-        { jobId: context.jobId, sources: seenResults.size, rawCount: raw.length, leadsFound: leads.length, drops },
+        {
+          jobId: context.jobId,
+          sources: seenResults.size,
+          rawCount: raw.length,
+          leadsFound: leads.length,
+          drops
+        },
         'Groq AI search completed'
       );
       return leads;
@@ -246,7 +309,8 @@ function refineLead(lead: CandidateLead, seen: Map<string, StoredResult>): Refin
 
   // Drop job postings (URL + the real, untruncated content)
   if (isJobPostingUrl(lead.sourceUrl)) return { ok: false, reason: 'job-url' };
-  if (isJobPostingContent(result.title, result.content)) return { ok: false, reason: 'job-content' };
+  if (isJobPostingContent(result.title, result.content))
+    return { ok: false, reason: 'job-content' };
 
   const local = (lead.email.split('@')[0] ?? '').toLowerCase();
   const isOrgContact = GENERIC_LOCALPARTS.has(local);
@@ -255,7 +319,12 @@ function refineLead(lead: CandidateLead, seen: Map<string, StoredResult>): Refin
   if (!isOrgContact) {
     const hay = `${result.title} ${result.content} ${lead.sourceUrl}`.toLowerCase();
     const lastName =
-      lead.name.trim().split(/\s+/).pop()?.toLowerCase().replace(/[^a-zà-ÿ]/g, '') ?? '';
+      lead.name
+        .trim()
+        .split(/\s+/)
+        .pop()
+        ?.toLowerCase()
+        .replace(/[^a-zà-ÿ]/g, '') ?? '';
     if (lastName.length >= 3 && !hay.includes(lastName)) {
       return { ok: false, reason: 'name-absent' };
     }
@@ -285,9 +354,19 @@ function refineLead(lead: CandidateLead, seen: Map<string, StoredResult>): Refin
 
 // Ranking/listicle aggregator hosts — pages here list many companies/people, never a single contact
 const LISTICLE_HOSTS = new Set([
-  'getlatka.com', 'growjo.com', 'failory.com', 'clutch.co', 'g2.com',
-  'capterra.com', 'owler.com', 'similarweb.com', 'tracxn.com', 'cbinsights.com',
-  'producthunt.com', 'softwareworld.co', 'goodfirms.co',
+  'getlatka.com',
+  'growjo.com',
+  'failory.com',
+  'clutch.co',
+  'g2.com',
+  'capterra.com',
+  'owler.com',
+  'similarweb.com',
+  'tracxn.com',
+  'cbinsights.com',
+  'producthunt.com',
+  'softwareworld.co',
+  'goodfirms.co'
 ]);
 
 const LISTICLE_TITLE_PATTERNS = [
@@ -295,7 +374,7 @@ const LISTICLE_TITLE_PATTERNS = [
   /\b\d+\s+(best|top|leading|biggest|largest|fastest|most)\b/i, // "20 best"
   /\b(best|top|leading)\b[\w\s,&-]*\b(companies|startups|firms|agencies|brands|employers|vendors|tools)\b/i,
   /\b(list|listing|ranking|rankings|directory)\b/i,
-  /\bcompanies (in|to watch|to know)\b/i,
+  /\bcompanies (in|to watch|to know)\b/i
 ];
 
 /**
@@ -305,7 +384,10 @@ const LISTICLE_TITLE_PATTERNS = [
 function isListicleSource(title: string, url: string): boolean {
   if (LISTICLE_TITLE_PATTERNS.some((re) => re.test(title))) return true;
   try {
-    const host = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).host.replace(/^www\./, '');
+    const host = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).host.replace(
+      /^www\./,
+      ''
+    );
     if (LISTICLE_HOSTS.has(host)) return true;
   } catch {
     // ignore
@@ -375,7 +457,7 @@ function parseQueries(content: string): string[] {
       ? parsed
       : parsed && typeof parsed === 'object'
         ? ((parsed as Record<string, unknown>).queries ??
-           Object.values(parsed as Record<string, unknown>).find((v) => Array.isArray(v)))
+          Object.values(parsed as Record<string, unknown>).find((v) => Array.isArray(v)))
         : null;
     if (!Array.isArray(arr)) return [];
     return arr.map((q) => String(q).trim()).filter((q) => q.length > 0);

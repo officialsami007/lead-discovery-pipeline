@@ -82,7 +82,7 @@ export async function registerJobRoutes(
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
         'X-Accel-Buffering': 'no'
       });
 
@@ -113,10 +113,7 @@ export async function registerJobRoutes(
             .select()
             .from(searchJobs)
             .where(
-              and(
-                eq(searchJobs.id, jobId),
-                eq(searchJobs.organizationId, auth.organizationId)
-              )
+              and(eq(searchJobs.id, jobId), eq(searchJobs.organizationId, auth.organizationId))
             )
             .limit(1);
 
@@ -135,7 +132,9 @@ export async function registerJobRoutes(
           if (TERMINAL.has(current.status)) {
             clearInterval(pollInterval);
             clearInterval(heartbeatInterval);
-            setTimeout(() => { if (!res.writableEnded) res.end(); }, 50);
+            setTimeout(() => {
+              if (!res.writableEnded) res.end();
+            }, 50);
           }
         } catch {
           clearInterval(pollInterval);

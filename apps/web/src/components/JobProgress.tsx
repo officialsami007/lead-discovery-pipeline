@@ -33,8 +33,18 @@ export function JobProgress({ job, error, cancelling, onCancel }: JobProgressPro
     return (
       <section className="panel progress-panel empty-progress">
         <div className="empty-icon" aria-hidden="true">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
         </div>
         <h2>Pipeline activity will appear here</h2>
@@ -98,11 +108,7 @@ export function JobProgress({ job, error, cancelling, onCancel }: JobProgressPro
               >
                 Yes, cancel
               </button>
-              <button
-                type="button"
-                className="button button-ghost"
-                onClick={handleAbortCancel}
-              >
+              <button type="button" className="button button-ghost" onClick={handleAbortCancel}>
                 Keep running
               </button>
             </span>
@@ -121,10 +127,21 @@ export function JobProgress({ job, error, cancelling, onCancel }: JobProgressPro
           >
             <span aria-hidden="true">
               {index < currentIndex ? (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 13l4 4L19 7"/>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 13l4 4L19 7" />
                 </svg>
-              ) : index + 1}
+              ) : (
+                index + 1
+              )}
             </span>
             <strong>{stepLabel[step]}</strong>
           </div>

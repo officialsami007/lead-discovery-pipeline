@@ -1,6 +1,8 @@
-import 'dotenv/config';
 import path from 'node:path';
-import { createDatabaseClient, databaseUrlFromEnv } from '@lead/db';
+import { createDatabaseClient, databaseUrlFromEnv, loadRootEnv } from '@lead/db';
+
+loadRootEnv();
+
 import { z } from 'zod';
 import { buildApp } from './build-app.js';
 import { createQueuePublisher } from './queue.js';
@@ -9,11 +11,23 @@ const env = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().int().positive().default(3000),
-    COOKIE_SECRET: z.string().min(32),
+    COOKIE_SECRET: z.string().min(32).optional(),
     APP_ORIGIN: z.string().url().default('http://localhost:3000'),
-    LOG_LEVEL: z.string().default('info')
+    LOG_LEVEL: z.string().default('info'),
+    TAVILY_API_KEY: z.string().optional(),
+    GROQ_API_KEY: z.string().optional()
   })
   .parse(process.env);
+
+const isProduction = env.NODE_ENV === 'production';
+
+// Allow zero-config local runs (`npm run dev` with no .env) while still requiring
+// a real secret in production. The fallback is never used when NODE_ENV=production.
+const DEV_COOKIE_SECRET = 'local-development-cookie-secret-not-for-production-use';
+if (isProduction && !env.COOKIE_SECRET) {
+  throw new Error('COOKIE_SECRET is required in production (set it in the environment).');
+}
+const cookieSecret = env.COOKIE_SECRET ?? DEV_COOKIE_SECRET;
 
 const databaseUrl = databaseUrlFromEnv();
 const client = createDatabaseClient(databaseUrl);
@@ -23,11 +37,12 @@ const app = await buildApp({
   queuePublisher,
   logLevel: env.LOG_LEVEL,
   config: {
-    cookieSecret: env.COOKIE_SECRET,
-    isProduction: env.NODE_ENV === 'production',
+    cookieSecret,
+    isProduction,
     secureCookies: new URL(env.APP_ORIGIN).protocol === 'https:',
     appOrigin: env.APP_ORIGIN,
-    staticRoot: path.resolve(process.cwd(), 'apps/web/dist')
+    staticRoot: path.resolve(process.cwd(), 'apps/web/dist'),
+    providers: { tavily: Boolean(env.TAVILY_API_KEY), groq: Boolean(env.GROQ_API_KEY) }
   }
 });
 

@@ -11,6 +11,8 @@ export interface ApiConfig {
   secureCookies: boolean;
   appOrigin: string;
   staticRoot?: string;
+  /** Whether real discovery providers are configured. When false, the worker uses mock data. */
+  providers: { tavily: boolean; groq: boolean };
 }
 
 declare module 'fastify' {

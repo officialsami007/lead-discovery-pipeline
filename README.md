@@ -54,13 +54,13 @@ docker compose down -v   # also removes local database data
 
 No password is required for the assessment demo. Use the login cards:
 
-| User         | Email                    | Organization       | Initial credits |
-| ------------ | ------------------------ | ------------------ | --------------: |
-| Alex Morgan  | `alex@northstar.demo`    | Northstar Hotels   |              10 |
-| Bailey Chen  | `bailey@harborview.demo` | Harborview Group   |               2 |
-| Casey Reyes  | `casey@meridian.demo`    | Meridian Consulting|              50 |
-| Dana Park    | `dana@atlas.demo`        | Atlas Group        |             100 |
-| Jordan Silva | `jordan@solaris.demo`    | Solaris Ventures   |              75 |
+| User         | Email                    | Organization        | Initial credits |
+| ------------ | ------------------------ | ------------------- | --------------: |
+| Alex Morgan  | `alex@northstar.demo`    | Northstar Hotels    |              10 |
+| Bailey Chen  | `bailey@harborview.demo` | Harborview Group    |               2 |
+| Casey Reyes  | `casey@meridian.demo`    | Meridian Consulting |              50 |
+| Dana Park    | `dana@atlas.demo`        | Atlas Group         |             100 |
+| Jordan Silva | `jordan@solaris.demo`    | Solaris Ventures    |              75 |
 
 The fixed identities are only accepted by the demo-login endpoint. After login, the server creates a random server-side session and sends only its signed identifier in an HTTP-only, SameSite cookie.
 
@@ -68,13 +68,19 @@ The fixed identities are only accepted by the demo-login endpoint. After login, 
 
 Requirements: Node.js 20+ and PostgreSQL 14+.
 
+**No `.env` is required.** With no configuration the app uses safe local defaults
+(`DATABASE_URL` → local Postgres, a development `COOKIE_SECRET`, and mock discovery/verify
+providers), so it runs end-to-end out of the box:
+
 ```bash
-cp .env.example .env
 npm ci
 npm run db:migrate
 npm run db:seed
-npm run dev
+npm run dev          # or: npm run dev:api + npm run dev:worker
 ```
+
+Optional: `cp .env.example .env` only if you want to override the defaults or add real
+provider keys (`TAVILY_API_KEY`, `GROQ_API_KEY`) — see [Demo (mock) mode](#demo-mock-mode--runs-with-no-api-keys). A real `COOKIE_SECRET` is required only when `NODE_ENV=production`.
 
 Development URLs:
 
@@ -241,6 +247,18 @@ Queue sends use two retries with exponential backoff. The worker logs job ID, or
 `MockVerifyProvider` rejects invalid syntax, `noreply@` and `info@`, otherwise returns a deterministic score from 50–100.
 
 Both implement shared interfaces and are injected into processors. A real implementation would live beside the mocks, implement the same interface, accept secrets/config in its constructor, and be selected in `apps/worker/src/main.ts`. Provider-specific rate limits, timeouts and retry classification belong inside the adapter; durable stage retries stay in pg-boss.
+
+### Demo (mock) mode — runs with no API keys
+
+The app runs end-to-end with **no API keys and no paid services**. When `TAVILY_API_KEY` / `GROQ_API_KEY` are absent, `apps/worker/src/main.ts` automatically falls back to the deterministic mock providers, so `docker compose up` (or `npm run dev`) gives a fully working discover → verify → inbox pipeline out of the box.
+
+The API exposes a public `GET /api/config` reporting which providers are live vs mock, and the UI shows a dismissible **"Demo mode — results are mock data"** banner whenever discovery is running on mocks. Add the keys to `.env` to switch to real results:
+
+| Mode        | Requires                          | Behaviour                          |
+| ----------- | --------------------------------- | ---------------------------------- |
+| Guided live | `TAVILY_API_KEY`                  | Real SERP-backed guided search     |
+| AI live     | `TAVILY_API_KEY` + `GROQ_API_KEY` | Real AI Search                     |
+| Demo / mock | _(no keys)_                       | Deterministic mock leads (default) |
 
 ## Testing strategy
 

@@ -67,68 +67,23 @@ textarea:focus-visible {
   line-height: 1.6;
 }
 .login-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(430px, 0.95fr);
-  background: #edf1ef;
-}
-.login-intro {
-  padding: clamp(32px, 5vw, 72px);
-  background:
-    radial-gradient(circle at 80% 20%, #3d7068 0, transparent 32%),
-    linear-gradient(145deg, #173c39, #28554f 62%, #122c2a);
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.login-intro .brand-mark {
-  background: rgba(255, 255, 255, 0.14);
-  margin-bottom: 30px;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.18), 0 0 28px rgba(255,255,255,0.07);
-}
-.login-intro .eyebrow {
-  color: #abd0c8;
-}
-.login-intro h1 {
-  max-width: 580px;
-  font-size: clamp(28px, 3.2vw, 52px);
-  line-height: 1.02;
-  letter-spacing: -0.045em;
-  margin: 0;
-}
-.login-copy {
-  max-width: 520px;
-  color: #c9dcd8;
-  font-size: 15px;
-  line-height: 1.6;
-  margin: 14px 0 24px;
-}
-.flow-preview {
+  min-height: 100dvh;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  color: #d9e9e5;
-  font-size: 12px;
-  font-weight: 700;
-}
-.flow-preview span {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  padding: 6px 11px;
-}
-.flow-preview .flow-sep {
-  color: rgba(255, 255, 255, 0.38);
-  flex-shrink: 0;
-  display: block;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(circle at 80% 12%, #d6e4e0 0, transparent 42%), #edf1ef;
 }
 .login-panel {
-  padding: clamp(28px, 4.5vw, 60px);
+  width: 100%;
+  max-width: 440px;
+  padding: clamp(28px, 4.5vw, 44px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
   background: white;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 40, 37, 0.08);
+  box-shadow: 0 14px 44px rgba(16, 40, 37, 0.12);
 }
 .login-panel h2 {
   font-size: 24px;
@@ -226,7 +181,9 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: color 0.18s, gap 0.18s;
+  transition:
+    color 0.18s,
+    gap 0.18s;
 }
 .demo-card:hover:not(:disabled) .login-arrow {
   color: #1c3c39;
@@ -385,35 +342,56 @@ textarea:focus-visible {
 
 /* ── Entrance animations ──────────────────────────────────────────────── */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-/* Login intro — each child staggers in */
-.login-intro .brand-mark  { animation: fadeInUp 0.5s ease 0.00s both; }
-.login-intro .eyebrow     { animation: fadeInUp 0.5s ease 0.07s both; }
-.login-intro h1           { animation: fadeInUp 0.5s ease 0.14s both; }
-.login-intro .login-copy  { animation: fadeInUp 0.5s ease 0.22s both; }
-.login-intro .flow-preview{ animation: fadeInUp 0.5s ease 0.30s both; }
-
 /* Login panel header */
-.login-panel > .eyebrow   { animation: fadeInUp 0.42s ease 0.10s both; }
-.login-panel > h2         { animation: fadeInUp 0.42s ease 0.17s both; }
-.login-panel > .muted     { animation: fadeInUp 0.42s ease 0.23s both; }
+.login-panel > .eyebrow {
+  animation: fadeInUp 0.42s ease 0.1s both;
+}
+.login-panel > h2 {
+  animation: fadeInUp 0.42s ease 0.17s both;
+}
+.login-panel > .muted {
+  animation: fadeInUp 0.42s ease 0.23s both;
+}
 
 /* Demo cards stagger */
-.demo-grid > :nth-child(1) { animation: fadeInUp 0.36s ease 0.26s both; }
-.demo-grid > :nth-child(2) { animation: fadeInUp 0.36s ease 0.32s both; }
-.demo-grid > :nth-child(3) { animation: fadeInUp 0.36s ease 0.38s both; }
-.demo-grid > :nth-child(4) { animation: fadeInUp 0.36s ease 0.44s both; }
-.demo-grid > :nth-child(5) { animation: fadeInUp 0.36s ease 0.50s both; }
+.demo-grid > :nth-child(1) {
+  animation: fadeInUp 0.36s ease 0.26s both;
+}
+.demo-grid > :nth-child(2) {
+  animation: fadeInUp 0.36s ease 0.32s both;
+}
+.demo-grid > :nth-child(3) {
+  animation: fadeInUp 0.36s ease 0.38s both;
+}
+.demo-grid > :nth-child(4) {
+  animation: fadeInUp 0.36s ease 0.44s both;
+}
+.demo-grid > :nth-child(5) {
+  animation: fadeInUp 0.36s ease 0.5s both;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

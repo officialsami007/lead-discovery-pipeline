@@ -95,7 +95,8 @@ beforeEach(async () => {
       cookieSecret: 'test-cookie-secret-that-is-at-least-thirty-two-chars',
       isProduction: false,
       secureCookies: false,
-      appOrigin: 'http://localhost:3000'
+      appOrigin: 'http://localhost:3000',
+      providers: { tavily: false, groq: false }
     }
   });
 });
@@ -484,12 +485,14 @@ describe('assessment requirements', () => {
     const cookie = await login(DEMO_IDS.userA);
     const before = await app.inject({ method: 'GET', url: '/api/me', headers: { cookie } });
     expect(before.statusCode).toBe(200);
-    await client.db.delete(organizationMemberships).where(
-      and(
-        eq(organizationMemberships.userId, DEMO_IDS.userA),
-        eq(organizationMemberships.organizationId, DEMO_IDS.organizationA)
-      )
-    );
+    await client.db
+      .delete(organizationMemberships)
+      .where(
+        and(
+          eq(organizationMemberships.userId, DEMO_IDS.userA),
+          eq(organizationMemberships.organizationId, DEMO_IDS.organizationA)
+        )
+      );
     const after = await app.inject({ method: 'GET', url: '/api/me', headers: { cookie } });
     expect(after.statusCode).toBe(401);
     expect(after.json().error.code).toBe('UNAUTHENTICATED');
@@ -502,7 +505,13 @@ describe('assessment requirements', () => {
     const job = await getJobRow(jobId);
     await processDiscovery(
       { jobId: job.id, organizationId: job.organizationId },
-      { db: client.db, discoverProvider, verifyProvider, enqueueVerify: async () => undefined, logger }
+      {
+        db: client.db,
+        discoverProvider,
+        verifyProvider,
+        enqueueVerify: async () => undefined,
+        logger
+      }
     );
     const testUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL!;
     const freshClient = createDatabaseClient(testUrl);

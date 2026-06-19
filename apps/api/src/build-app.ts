@@ -36,6 +36,17 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     return { status: 'ok' };
   });
 
+  // Public: lets the UI warn when discovery is running on mock data (no API keys configured).
+  app.get('/api/config', async () => {
+    const { tavily, groq } = options.config.providers;
+    return {
+      providers: { tavily, groq },
+      // Guided search uses Tavily; AI search additionally needs Groq.
+      guidedMode: tavily ? 'live' : 'mock',
+      aiMode: tavily && groq ? 'live' : 'mock'
+    };
+  });
+
   const jobService = new JobService(options.db, options.queuePublisher, app.log);
   await registerAuthRoutes(app, options.db, options.config);
   await registerJobRoutes(app, options.db, jobService);

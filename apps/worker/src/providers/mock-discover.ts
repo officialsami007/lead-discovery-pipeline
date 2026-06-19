@@ -1,5 +1,10 @@
 import { createHash } from 'node:crypto';
-import type { CandidateLead, DiscoverContext, DiscoverProvider, JobSearchInput } from '@lead/shared';
+import type {
+  CandidateLead,
+  DiscoverContext,
+  DiscoverProvider,
+  JobSearchInput
+} from '@lead/shared';
 import { isGuidedSearchRequest } from '@lead/shared';
 
 const firstNames = ['Aisha', 'Daniel', 'Farah', 'Marcus', 'Priya', 'Noor', 'Hannah', 'Kenji'];
@@ -55,7 +60,7 @@ export class MockDiscoverProvider implements DiscoverProvider {
       const genericPrefixes = ['info', 'contact', 'sales', 'noreply'];
       const email =
         index % 3 === 2
-          ? `${genericPrefixes[(index / 3) % genericPrefixes.length | 0]!}@${domain}`
+          ? `${genericPrefixes[((index / 3) % genericPrefixes.length) | 0]!}@${domain}`
           : `${first.toLowerCase()}.${last.toLowerCase()}@${domain}`;
 
       candidates.push({

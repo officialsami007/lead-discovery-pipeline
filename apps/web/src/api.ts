@@ -35,8 +35,15 @@ export interface MeResponse {
   organization: { id: string; name: string; credits: number };
 }
 
+export interface ConfigResponse {
+  providers: { tavily: boolean; groq: boolean };
+  guidedMode: 'live' | 'mock';
+  aiMode: 'live' | 'mock';
+}
+
 export const api = {
   me: () => request<MeResponse>('/api/me'),
+  config: () => request<ConfigResponse>('/api/config'),
   login: (userId: string) =>
     request<{ ok: true }>('/api/auth/demo-login', {
       method: 'POST',

@@ -15,6 +15,16 @@ services:
       timeout: 3s
       retries: 20
 
+  adminer:
+    image: adminer:latest
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '8081:8080'
+
   migrate:
     build: .
     environment: &app-env

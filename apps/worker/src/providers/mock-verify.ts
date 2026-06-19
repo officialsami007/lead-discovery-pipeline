@@ -6,20 +6,46 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NOREPLY_PREFIXES = ['noreply', 'no-reply', 'no_reply'];
 
 const GENERIC_INFO_PREFIXES = [
-  'info', 'contact', 'enquiries', 'enquiry',
-  'hello', 'hi', 'hey', 'support', 'helpdesk',
+  'info',
+  'contact',
+  'enquiries',
+  'enquiry',
+  'hello',
+  'hi',
+  'hey',
+  'support',
+  'helpdesk'
 ];
 
 const DEPARTMENT_PREFIXES = [
-  'hr', 'admin', 'careers', 'recruitment', 'jobs',
-  'sales', 'marketing', 'legal', 'finance', 'billing', 'accounts',
-  'office', 'reception', 'team',
-  'press', 'media', 'pr', 'privacy', 'security', 'abuse',
+  'hr',
+  'admin',
+  'careers',
+  'recruitment',
+  'jobs',
+  'sales',
+  'marketing',
+  'legal',
+  'finance',
+  'billing',
+  'accounts',
+  'office',
+  'reception',
+  'team',
+  'press',
+  'media',
+  'pr',
+  'privacy',
+  'security',
+  'abuse'
 ];
 
-function deterministicScore(email: string): number {
+// Deterministic, stable score derived from the email. Approved leads map to 50–100;
+// rejected (but syntactically valid) leads map to 1–49 so scores vary per lead instead
+// of all showing the same constant.
+function deterministicScore(email: string, min: number, max: number): number {
   const byte = createHash('sha256').update(email.toLowerCase()).digest()[0]!;
-  return 50 + (byte % 51); // 50–100 for approved leads (0–49 reserved for rejections)
+  return min + (byte % (max - min + 1));
 }
 
 export class MockVerifyProvider implements VerifyProvider {
@@ -50,16 +76,29 @@ export class MockVerifyProvider implements VerifyProvider {
           local.startsWith(prefix + '-')
       );
 
+    const rejectedScore = deterministicScore(email, 1, 49);
     if (matchesPrefix(NOREPLY_PREFIXES)) {
-      return { ok: false, score: 12, reason: 'No-reply address — responses cannot be received here.' };
+      return {
+        ok: false,
+        score: rejectedScore,
+        reason: 'No-reply address — responses cannot be received here.'
+      };
     }
     if (matchesPrefix(GENERIC_INFO_PREFIXES)) {
-      return { ok: false, score: 12, reason: 'Generic info mailbox — not a person-level contact.' };
+      return {
+        ok: false,
+        score: rejectedScore,
+        reason: 'Generic info mailbox — not a person-level contact.'
+      };
     }
     if (matchesPrefix(DEPARTMENT_PREFIXES)) {
-      return { ok: false, score: 12, reason: 'Departmental mailbox is not a person-level lead.' };
+      return {
+        ok: false,
+        score: rejectedScore,
+        reason: 'Departmental mailbox is not a person-level lead.'
+      };
     }
 
-    return { ok: true, score: deterministicScore(email) };
+    return { ok: true, score: deterministicScore(email, 50, 100) };
   }
 }

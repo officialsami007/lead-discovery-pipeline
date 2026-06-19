@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { JobDto, JobSearchInput, LeadDto } from '@lead/shared';
-import { api, ApiError, openJobEventStream, type MeResponse } from './api';
+import { api, ApiError, openJobEventStream, type ConfigResponse, type MeResponse } from './api';
 import { Inbox } from './components/Inbox';
 import { JobProgress } from './components/JobProgress';
 import { Login } from './components/Login';
@@ -10,17 +10,10 @@ function messageFrom(error: unknown): string {
   return error instanceof Error ? error.message : 'An unexpected error occurred.';
 }
 
-function serializeSearch(input: JobSearchInput): string {
-  if ('naturalLanguageQuery' in input) {
-    return `ai:${input.naturalLanguageQuery.trim().toLowerCase()}`;
-  }
-  const companies = [...input.companiesOrKeywords].map((s) => s.toLowerCase().trim()).sort().join(',');
-  const roles = [...input.roles].map((s) => s.toLowerCase().trim()).sort().join(',');
-  return `guided:${companies}|${roles}|${input.region.trim().toLowerCase()}`;
-}
-
 export default function App() {
   const [me, setMe] = useState<MeResponse | null>(null);
+  const [dataConfig, setDataConfig] = useState<ConfigResponse | null>(null);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [loginUserId, setLoginUserId] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -39,12 +32,6 @@ export default function App() {
       return {};
     }
   });
-  // counter = total successful searches; lastSubmit maps key → counter value at submission
-  const searchHistoryRef = useRef<{ counter: number; lastSubmit: Map<string, number> }>({
-    counter: 0,
-    lastSubmit: new Map()
-  });
-  const prevUserIdRef = useRef<string | null>(null);
   const [leads, setLeads] = useState<LeadDto[]>([]);
   const [jobs, setJobs] = useState<JobDto[]>([]);
   const [leadFilter, setLeadFilter] = useState('all');
@@ -68,10 +55,7 @@ export default function App() {
       setLeadsLoading(true);
       setLeadsError(null);
       try {
-        const [leadsResp, jobsResp] = await Promise.all([
-          api.listLeads(filter),
-          api.listJobs()
-        ]);
+        const [leadsResp, jobsResp] = await Promise.all([api.listLeads(filter), api.listJobs()]);
         setLeads(leadsResp.items);
         setJobs(jobsResp.items);
       } catch (error) {
@@ -87,26 +71,18 @@ export default function App() {
     void loadMe();
   }, [loadMe]);
   useEffect(() => {
+    api
+      .config()
+      .then(setDataConfig)
+      .catch(() => setDataConfig(null));
+  }, []);
+  useEffect(() => {
     if (me) {
       setKnownCredits((prev) => {
         const next = { ...prev, [me.user.id]: me.organization.credits };
         sessionStorage.setItem('knownCredits', JSON.stringify(next));
         return next;
       });
-      if (me.user.id !== prevUserIdRef.current) {
-        prevUserIdRef.current = me.user.id;
-        try {
-          const stored = sessionStorage.getItem(`searchHistory:${me.user.id}`);
-          if (stored) {
-            const parsed = JSON.parse(stored) as { counter: number; entries: [string, number][] };
-            searchHistoryRef.current = { counter: parsed.counter, lastSubmit: new Map(parsed.entries) };
-          } else {
-            searchHistoryRef.current = { counter: 0, lastSubmit: new Map() };
-          }
-        } catch {
-          searchHistoryRef.current = { counter: 0, lastSubmit: new Map() };
-        }
-      }
       void loadLeads();
     }
   }, [me, loadLeads]);
@@ -135,7 +111,7 @@ export default function App() {
     );
 
     return close;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [job?.id, job?.status]);
 
   async function login(userId: string): Promise<void> {
@@ -155,8 +131,6 @@ export default function App() {
     try {
       await api.logout();
     } finally {
-      prevUserIdRef.current = null;
-      searchHistoryRef.current = { counter: 0, lastSubmit: new Map() };
       setMe(null);
       setJob(null);
       setLeads([]);
@@ -170,23 +144,6 @@ export default function App() {
   async function submitSearch(input: JobSearchInput, retry: boolean): Promise<void> {
     if (submitInFlight.current || jobActive) return;
 
-    const searchKey = serializeSearch(input);
-    if (!retry) {
-      const { counter, lastSubmit } = searchHistoryRef.current;
-      const lastIndex = lastSubmit.get(searchKey);
-      if (lastIndex !== undefined) {
-        const searchesSince = counter - lastIndex;
-        if (searchesSince < 3) {
-          const needed = 3 - searchesSince;
-          setSubmitError(
-            `Repeating this search would waste a credit — you already have these results. Run ${needed} different search${needed === 1 ? '' : 'es'} first, then come back to this one.`
-          );
-          setCanRetry(false);
-          return;
-        }
-      }
-    }
-
     submitInFlight.current = true;
     setSubmitting(true);
     setSubmitError(null);
@@ -197,17 +154,6 @@ export default function App() {
       const freshJob = await api.getJob(response.jobId);
       setJob(freshJob.job);
       idempotencyKeyRef.current = null;
-      if (!retry && me) {
-        const { counter, lastSubmit } = searchHistoryRef.current;
-        const newCounter = counter + 1;
-        const newLastSubmit = new Map(lastSubmit);
-        newLastSubmit.set(searchKey, newCounter);
-        searchHistoryRef.current = { counter: newCounter, lastSubmit: newLastSubmit };
-        sessionStorage.setItem(`searchHistory:${me.user.id}`, JSON.stringify({
-          counter: newCounter,
-          entries: [...newLastSubmit.entries()]
-        }));
-      }
       await loadMe();
     } catch (error) {
       setSubmitError(messageFrom(error));
@@ -243,12 +189,43 @@ export default function App() {
         </div>
       </div>
     );
-  if (!me) return <Login onLogin={login} loadingUserId={loginUserId} error={authError} knownCredits={knownCredits} />;
+  if (!me)
+    return (
+      <Login
+        onLogin={login}
+        loadingUserId={loginUserId}
+        error={authError}
+        knownCredits={knownCredits}
+      />
+    );
 
   const credits = me.organization.credits;
 
+  // Surface when discovery is running on mock data so a reviewer running without
+  // API keys understands the results are simulated (still a fully working pipeline).
+  const showMockBanner = dataConfig != null && dataConfig.guidedMode === 'mock' && !bannerDismissed;
+
   return (
     <div className="app-shell">
+      {showMockBanner && (
+        <div className="mock-banner" role="status">
+          <span className="mock-banner-dot" aria-hidden="true" />
+          <span>
+            <strong>Demo mode — results are mock data.</strong> The pipeline (discover → verify →
+            inbox) runs end-to-end with deterministic sample leads. Add a{' '}
+            <code>TAVILY_API_KEY</code> (and <code>GROQ_API_KEY</code> for AI Search) to your{' '}
+            <code>.env</code> for real results.
+          </span>
+          <button
+            type="button"
+            className="mock-banner-close"
+            aria-label="Dismiss demo mode notice"
+            onClick={() => setBannerDismissed(true)}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark">LF</div>
@@ -259,7 +236,11 @@ export default function App() {
         </div>
         <div className="identity">
           <div className="user-avatar-sm" aria-hidden="true">
-            {me.user.name.split(' ').map((p) => p[0]).join('').slice(0, 2)}
+            {me.user.name
+              .split(' ')
+              .map((p) => p[0])
+              .join('')
+              .slice(0, 2)}
           </div>
           <div>
             <strong>{me.user.name}</strong>

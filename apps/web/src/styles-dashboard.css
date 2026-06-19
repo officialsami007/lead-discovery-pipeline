@@ -16,16 +16,18 @@
   cursor: pointer;
   background: transparent;
   color: #4e5f5b;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 .mode-tab:hover:not(:disabled):not(.active) {
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.6);
   color: #234b47;
 }
 .mode-tab.active {
   background: #fff;
   color: #234b47;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
 }
 .mode-tab:disabled {
   cursor: not-allowed;
@@ -121,7 +123,9 @@ textarea:focus {
   background: transparent;
   color: #315b55;
   border: 1px solid #d7e0dd;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 .button-ghost:hover:not(:disabled) {
   background: #f0f5f3;
@@ -240,7 +244,9 @@ textarea:focus {
   background: #edf0ef;
   position: relative;
   z-index: 1;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 .step.active {
   color: #234b47;
@@ -250,9 +256,15 @@ textarea:focus {
   color: white;
 }
 @keyframes pulse-ring {
-  0%   { box-shadow: 0 0 0 0   rgba(35, 75, 71, 0.28); }
-  70%  { box-shadow: 0 0 0 7px rgba(35, 75, 71, 0); }
-  100% { box-shadow: 0 0 0 0   rgba(35, 75, 71, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(35, 75, 71, 0.28);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(35, 75, 71, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(35, 75, 71, 0);
+  }
 }
 .step.current span {
   animation: pulse-ring 1.8s ease-out infinite;
@@ -329,7 +341,9 @@ textarea:focus {
   padding: 8px 11px;
   text-transform: capitalize;
   font-size: 13px;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 .filter-row button:hover:not(.active) {
   background: #f0f4f3;
@@ -419,31 +433,13 @@ td .rejection {
   line-height: 1.5;
 }
 @media (max-width: 980px) {
-  .login-shell {
-    grid-template-columns: 1fr;
-    min-height: 100vh;
-  }
-  .login-intro {
-    min-height: 320px;
-  }
-  .login-panel {
-    overflow-y: auto;
-    justify-content: flex-start;
-  }
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
 }
 @media (max-width: 680px) {
-  .login-intro,
   .login-panel {
     padding: 28px 20px;
-  }
-  .login-intro h1 {
-    font-size: 28px;
-  }
-  .login-intro {
-    min-height: 260px;
   }
   .topbar {
     padding: 0 15px;
@@ -519,11 +515,21 @@ td:last-child {
 }
 
 /* ── Dashboard entrance animations ──────────────────────────────────── */
-.topbar        { animation: fadeIn    0.30s ease       both; }
-.hero-row      { animation: fadeInUp  0.38s ease 0.08s both; }
-.search-panel  { animation: fadeInUp  0.38s ease 0.15s both; }
-.progress-panel{ animation: fadeInUp  0.38s ease 0.20s both; }
-.inbox-panel   { animation: fadeInUp  0.38s ease 0.27s both; }
+.topbar {
+  animation: fadeIn 0.3s ease both;
+}
+.hero-row {
+  animation: fadeInUp 0.38s ease 0.08s both;
+}
+.search-panel {
+  animation: fadeInUp 0.38s ease 0.15s both;
+}
+.progress-panel {
+  animation: fadeInUp 0.38s ease 0.2s both;
+}
+.inbox-panel {
+  animation: fadeInUp 0.38s ease 0.27s both;
+}
 
 /* ── Demo mode notice badge ──────────────────────────────────────────── */
 .demo-notice {
@@ -543,7 +549,9 @@ td:last-child {
 
 /* ── Loading spinner ────────────────────────────────────────────────── */
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .spinner {
   display: inline-block;
@@ -642,4 +650,47 @@ td:last-child {
   padding: 10px 14px;
   background: #f0f7f5;
   border-radius: 10px;
+}
+.mock-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 18px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #7a5310;
+  background: #fdf3dc;
+  border-bottom: 1px solid #f2e2b6;
+}
+.mock-banner strong {
+  color: #6b4709;
+}
+.mock-banner code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  background: #f6e7bf;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.mock-banner-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #d99311;
+}
+.mock-banner-close {
+  flex: none;
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: #a07414;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.mock-banner-close:hover {
+  color: #6b4709;
 }

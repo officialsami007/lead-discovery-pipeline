@@ -176,4 +176,3 @@ export const creditTransactions = pgTable(
     index('credit_transactions_org_created_idx').on(table.organizationId, table.createdAt)
   ]
 );
-

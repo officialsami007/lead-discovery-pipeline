@@ -1,4 +1,9 @@
-import type { CandidateLead, DiscoverContext, DiscoverProvider, JobSearchInput } from '@lead/shared';
+import type {
+  CandidateLead,
+  DiscoverContext,
+  DiscoverProvider,
+  JobSearchInput
+} from '@lead/shared';
 import { isAISearchRequest } from '@lead/shared';
 
 export class RouterDiscoverProvider implements DiscoverProvider {

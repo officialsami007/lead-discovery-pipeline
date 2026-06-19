@@ -22,6 +22,6 @@ The frontend previously polled `GET /api/jobs/:jobId` every 1.5 seconds. This ge
 
 ### Risks accepted for the time box
 
-* Demo login identifies a seeded user without a password; sessions are signed, HTTP-only, server-side, membership-checked, and appropriate for the assessment, but not production identity assurance.
-* Mock providers process candidates sequentially and do not model external API throttling, batching, quotas, or provider-specific retry semantics.
-* The credit top-up endpoint does not insert an audit ledger row; the `credit_transactions` table currently enforces `amount = -1` for search charges only. A real system would add a `credit_topup` transaction type and loosen the check constraint.
+- Demo login identifies a seeded user without a password; sessions are signed, HTTP-only, server-side, membership-checked, and appropriate for the assessment, but not production identity assurance.
+- Mock providers process candidates sequentially and do not model external API throttling, batching, quotas, or provider-specific retry semantics.
+- The credit top-up endpoint does not insert an audit ledger row; the `credit_transactions` table currently enforces `amount = -1` for search charges only. A real system would add a `credit_topup` transaction type and loosen the check constraint.
