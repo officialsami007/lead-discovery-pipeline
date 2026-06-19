@@ -1,0 +1,47 @@
+{
+  "name": "lead-discovery-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build:packages": "npm run build -w @lead/shared && npm run build -w @lead/db",
+    "build": "npm run build:packages && npm run build -w @lead/worker && npm run build -w @lead/api && npm run build -w @lead/web",
+    "typecheck": "./node_modules/.bin/tsc -p packages/shared/tsconfig.json && ./node_modules/.bin/tsc -p packages/db/tsconfig.json && ./node_modules/.bin/tsc -p apps/api/tsconfig.json --noEmit && ./node_modules/.bin/tsc -p apps/worker/tsconfig.json --noEmit && ./node_modules/.bin/tsc -p packages/db/tsconfig.json --noEmit && ./node_modules/.bin/tsc -p packages/shared/tsconfig.json --noEmit && ./node_modules/.bin/tsc -b apps/web/tsconfig.json --pretty false",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "dev": "npm run build:packages && concurrently -k -n api,worker,web \"npm run dev -w @lead/api\" \"npm run dev -w @lead/worker\" \"npm run dev -w @lead/web\"",
+    "dev:api": "npm run build:packages && npm run dev -w @lead/api",
+    "dev:worker": "npm run build:packages && npm run dev -w @lead/worker",
+    "start:api": "npm run start -w @lead/api",
+    "start:worker": "npm run start -w @lead/worker",
+    "db:migrate": "npm run migrate -w @lead/db",
+    "db:seed": "npm run seed -w @lead/db",
+    "test": "node scripts/run-tests.mjs",
+    "test:direct": "vitest run --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/node": "^22.15.30",
+    "concurrently": "^10.0.3",
+    "drizzle-orm": "^0.45.2",
+    "eslint": "^9.28.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "fastify": "^5.4.0",
+    "globals": "^16.2.0",
+    "pg": "^8.16.0",
+    "pino": "^9.7.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.0",
+    "vitest": "^4.1.9"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,9 @@
+node_modules
+**/node_modules
+**/dist
+**/dist-config
+*.tsbuildinfo
+.git
+coverage
+.env
+*.log

@@ -1,0 +1,26 @@
+{
+  "name": "@lead/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^10.1.0",
+    "@fastify/static": "^9.1.3",
+    "@lead/db": "1.0.0",
+    "@lead/shared": "1.0.0",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.4.0",
+    "pg-boss": "10.1.6",
+    "pino": "^9.7.0",
+    "zod": "^3.25.64"
+  }
+}
