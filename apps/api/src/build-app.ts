@@ -49,7 +49,12 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
 
   const jobService = new JobService(options.db, options.queuePublisher, app.log);
   await registerAuthRoutes(app, options.db, options.config);
-  await registerJobRoutes(app, options.db, jobService);
+  await registerJobRoutes(
+    app,
+    options.db,
+    jobService,
+    options.config.rateLimit ?? { limit: 5, windowMs: 60_000 }
+  );
   await registerLeadRoutes(app, options.db);
   await registerOrganizationRoutes(app, options.db);
 

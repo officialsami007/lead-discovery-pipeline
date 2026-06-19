@@ -13,6 +13,8 @@ export interface ApiConfig {
   staticRoot?: string;
   /** Whether real discovery providers are configured. When false, the worker uses mock data. */
   providers: { tavily: boolean; groq: boolean };
+  /** Per-organization rate limit for starting searches. Defaults to 5 per minute. */
+  rateLimit?: { limit: number; windowMs: number };
 }
 
 declare module 'fastify' {

@@ -139,10 +139,10 @@ export default function App() {
     }
   }
 
-  const jobActive = !!job && ['queued', 'discovering', 'verifying'].includes(job.status);
-
   async function submitSearch(input: JobSearchInput, retry: boolean): Promise<void> {
-    if (submitInFlight.current || jobActive) return;
+    // Allow starting a new search even while one is running; submitInFlight still
+    // guards against a double-click firing the same request twice.
+    if (submitInFlight.current) return;
 
     submitInFlight.current = true;
     setSubmitting(true);
@@ -268,7 +268,6 @@ export default function App() {
           <SearchForm
             credits={credits}
             submitting={submitting}
-            jobActive={jobActive}
             canRetry={canRetry}
             error={submitError}
             onSubmit={submitSearch}

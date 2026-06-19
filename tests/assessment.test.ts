@@ -96,7 +96,10 @@ beforeEach(async () => {
       isProduction: false,
       secureCookies: false,
       appOrigin: 'http://localhost:3000',
-      providers: { tavily: false, groq: false }
+      providers: { tavily: false, groq: false },
+      // High limit so the shared suite never trips the per-org search rate limit;
+      // a dedicated test below builds its own app with a small limit.
+      rateLimit: { limit: 100_000, windowMs: 60_000 }
     }
   });
 });
@@ -453,6 +456,46 @@ describe('assessment requirements', () => {
     });
     expect(secondCancel.statusCode).toBe(409);
     expect(secondCancel.json().error.code).toBe('JOB_NOT_CANCELLABLE');
+  });
+
+  it('rate limits starting searches per organization', async () => {
+    // Separate app instance with a small limit so the cap is easy to trip.
+    const limited = await buildApp({
+      db: client.db,
+      queuePublisher: { publishDiscovery: async () => undefined, close: async () => undefined },
+      config: {
+        cookieSecret: 'test-cookie-secret-that-is-at-least-thirty-two-chars',
+        isProduction: false,
+        secureCookies: false,
+        appOrigin: 'http://localhost:3000',
+        providers: { tavily: false, groq: false },
+        rateLimit: { limit: 2, windowMs: 60_000 }
+      }
+    });
+
+    const loginRes = await limited.inject({
+      method: 'POST',
+      url: '/api/auth/demo-login',
+      payload: { userId: DEMO_IDS.userD } // Atlas Group, 100 credits
+    });
+    const cookie = (loginRes.headers['set-cookie'] as string).split(';')[0]!;
+    const start = (key: string) =>
+      limited.inject({
+        method: 'POST',
+        url: '/api/jobs',
+        headers: { cookie, 'idempotency-key': key },
+        payload: searchInput
+      });
+
+    expect((await start(randomUUID())).statusCode).toBe(202);
+    expect((await start(randomUUID())).statusCode).toBe(202);
+
+    const third = await start(randomUUID());
+    expect(third.statusCode).toBe(429);
+    expect(third.json().error.code).toBe('RATE_LIMITED');
+    expect(third.headers['retry-after']).toBeDefined();
+
+    await limited.close();
   });
 
   it('two concurrent requests with different keys cannot both consume the last credit', async () => {

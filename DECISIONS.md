@@ -1,21 +1,15 @@
 # Decisions
 
-## Key architecture decisions (async job system)
-
-- **Two-stage async pipeline.** `POST /api/jobs` charges and creates the job, returns `job_id` immediately, and never blocks on discovery or verification. Work runs as two separate pg-boss queues — `discover-job` then `verify-job` — with the job row as the source of truth: `queued → discovering → verifying → completed | failed` (plus `cancelled`). Verification is its own stage, not a synchronous loop inside the HTTP handler.
-- **pg-boss on the same PostgreSQL.** Durable queue with no Redis or extra service; queue state is transactional with application data and queryable with the same tools. BullMQ (needs Redis) or SQS/Cloud Tasks (cross-service hop, second billing line) were not worth the added surface at this scale.
-- **Atomic credit charge.** Job insert + credit decrement (`WHERE credits > 0`) + ledger row commit in one transaction. An `Idempotency-Key` plus a unique `(organization_id, idempotency_key)` constraint dedupes double-clicks and retries — so a job cannot double-spend or be created twice.
-- **Tenant isolation enforced in the database.** `leads` and `credit_transactions` reference `search_jobs` via a composite foreign key `(job_id, organization_id)`, backed by `UNIQUE(id, organization_id)`. The engine rejects any cross-org `job_id`/`lead_id` even if an API-layer check is ever bypassed by a future code path.
-- **Idempotent discovery inserts.** Leads insert with `ON CONFLICT DO NOTHING` on `(job_id, provider_candidate_key)`. A worker retry, the crash-recovery hook, or stuck-job reconciliation can re-run discovery without duplicating leads — candidate keys are deterministic per job.
-- **SSE for progress, not polling.** One connection per active job; the API watches the job row and pushes an update only when `updated_at` changes. Lower load than interval polling, reuses the plain-HTTP Fastify stack, and needs no client-side timers or de-duplication.
-
 ## What I'd do differently with 2 more days
 
-- **Keyset (cursor) pagination instead of `OFFSET`.** Lists currently page with `LIMIT/OFFSET`, which rescans skipped rows and can duplicate or drop a lead when new rows arrive between page requests. I'd switch to a `(created_at, id)` keyset with a covering index for stable, index-only reads.
-- **Worker throughput and provider resilience.** Verification runs sequentially (`for` loop over pending leads); I'd process with bounded concurrency and wrap the real Tavily/Groq adapters in per-provider rate limiting, timeouts, retry classification (transient vs permanent), and a circuit breaker.
-- **Operational visibility and limits.** Add metrics and tracing (stage latency, queue depth, retry/failure rates) with alerting, and a per-org rate limit on `POST /api/jobs`. Today there are good structured logs but no metrics, dashboards, or throttle.
+- **Optimize API call for more accurate results:** I would have spend time tuning the Travily API calls that was used for discovery so the output comes back cleaner. That means writing better search queries and filtering the results more strictly, so the leads are more relevant, the email guesses are more reliable, and verification has less junk to throw away.
+
+- **Tidy up the database:** The schema and migrations got a bit messy as features moved around. I would have clean up the naming, drop anything that is no longer used, add the indexes the queries actually rely on, use a better format for the ids and optimize a few of the heavier queries.
+
+- **Create an Admin for users and organiztion management:** Right now users, organizations, and credits only exist through the seed script. I could have build proper screens to invite and manage users, change which organization someone belongs to, and top up or adjust credit balances, instead of editing the database by hand.
 
 ## Risks accepted for the time box
 
-- **Demo-grade authentication.** Login identifies a seeded user without a password. Sessions are signed, HTTP-only, server-side, and membership-checked — appropriate for the assessment, but not production identity assurance (no passwords/OAuth, MFA, or rotation).
-- **No throttling or scale modelling for real providers.** Verification is sequential and there is no per-org rate limit on starting searches, so a 50-candidate job is slow and a burst of submits is unbounded. Acceptable for the demo's small, deterministic batches; real load would need the concurrency, rate-limiting, and quota handling noted above.
+- **Demo style login:** You sign in by picking one of the seeded users, with no password with fixed number of credits. The session itself is still secure as it is signed, stored on the server, kept in a cookie that scripts cannot read, and checked against the user's organization membership. That is fine for a demo, but it is not a real production login.
+
+- **Rate limiting is in memory:** The per organization search limit is counted inside a single process, so it is not shared across instances. If the app ran on more than one server, each server would keep its own count and the real limit would end up higher than intended. For a single instance demo this is fine, and a production version would store the count in Redis or a database table so every instance sees the same number.

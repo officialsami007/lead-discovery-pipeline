@@ -6,17 +6,33 @@ import type { FastifyInstance } from 'fastify';
 import { createAuthenticate, requireAuth } from '../auth.js';
 import { AppError } from '../errors.js';
 import { toJobDto, toLeadDto } from '../mappers.js';
+import { createRateLimiter } from '../rate-limit.js';
 import type { JobService } from '../services/job-service.js';
 
 export async function registerJobRoutes(
   app: FastifyInstance,
   db: Database,
-  jobService: JobService
+  jobService: JobService,
+  rateLimit: { limit: number; windowMs: number }
 ): Promise<void> {
   const authenticate = createAuthenticate(db);
+  const startSearchLimiter = createRateLimiter(rateLimit.limit, rateLimit.windowMs);
 
   app.post('/api/jobs', { preHandler: authenticate }, async (request, reply) => {
     const auth = requireAuth(request);
+
+    // Per-organization rate limit on starting searches, checked before any credit
+    // is charged so a throttled request never spends a credit.
+    const limit = startSearchLimiter.hit(auth.organizationId);
+    if (!limit.allowed) {
+      reply.header('Retry-After', String(limit.retryAfterSeconds));
+      throw new AppError(
+        429,
+        'RATE_LIMITED',
+        `Too many searches. Try again in ${limit.retryAfterSeconds}s.`
+      );
+    }
+
     const rawKey = request.headers['idempotency-key'];
     if (typeof rawKey !== 'string') {
       throw new AppError(

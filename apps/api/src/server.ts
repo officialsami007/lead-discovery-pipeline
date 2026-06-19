@@ -15,7 +15,8 @@ const env = z
     APP_ORIGIN: z.string().url().default('http://localhost:3000'),
     LOG_LEVEL: z.string().default('info'),
     TAVILY_API_KEY: z.string().optional(),
-    GROQ_API_KEY: z.string().optional()
+    GROQ_API_KEY: z.string().optional(),
+    RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(5)
   })
   .parse(process.env);
 
@@ -42,7 +43,8 @@ const app = await buildApp({
     secureCookies: new URL(env.APP_ORIGIN).protocol === 'https:',
     appOrigin: env.APP_ORIGIN,
     staticRoot: path.resolve(process.cwd(), 'apps/web/dist'),
-    providers: { tavily: Boolean(env.TAVILY_API_KEY), groq: Boolean(env.GROQ_API_KEY) }
+    providers: { tavily: Boolean(env.TAVILY_API_KEY), groq: Boolean(env.GROQ_API_KEY) },
+    rateLimit: { limit: env.RATE_LIMIT_PER_MIN, windowMs: 60_000 }
   }
 });
 

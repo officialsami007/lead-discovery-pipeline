@@ -13,20 +13,12 @@ function toList(value: string): string[] {
 interface SearchFormProps {
   credits: number;
   submitting: boolean;
-  jobActive: boolean;
   canRetry: boolean;
   error: string | null;
   onSubmit: (input: JobSearchInput, retry: boolean) => Promise<void>;
 }
 
-export function SearchForm({
-  credits,
-  submitting,
-  jobActive,
-  canRetry,
-  error,
-  onSubmit
-}: SearchFormProps) {
+export function SearchForm({ credits, submitting, canRetry, error, onSubmit }: SearchFormProps) {
   const [mode, setMode] = useState<SearchMode>('guided');
 
   // Guided mode state
@@ -84,7 +76,7 @@ export function SearchForm({
     setSubmitAttempted(false);
   }
 
-  const blocked = submitting || jobActive || credits === 0;
+  const blocked = submitting || credits === 0;
 
   return (
     <section className="panel search-panel" aria-labelledby="search-title">
@@ -124,7 +116,7 @@ export function SearchForm({
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          if (!jobActive && validate()) void onSubmit(buildPayload(), false);
+          if (validate()) void onSubmit(buildPayload(), false);
         }}
       >
         {mode === 'guided' ? (
@@ -195,12 +187,7 @@ export function SearchForm({
           </div>
         )}
 
-        {jobActive && (
-          <div className="alert alert-info" role="status">
-            A search is running. Wait for it to complete or cancel it before starting a new one.
-          </div>
-        )}
-        {!jobActive && error && (
+        {error && (
           <div className="alert alert-error" role="alert">
             {error}
           </div>
@@ -208,7 +195,7 @@ export function SearchForm({
 
         <div className="form-actions">
           <div className="button-row">
-            {canRetry && !jobActive && (
+            {canRetry && (
               <button
                 className="button button-secondary"
                 type="button"
@@ -227,13 +214,11 @@ export function SearchForm({
               {submitting && <span className="spinner" aria-hidden="true" />}
               {submitting
                 ? 'Starting…'
-                : jobActive
-                  ? 'Search in progress…'
-                  : credits === 0
-                    ? 'No credits remaining'
-                    : mode === 'ai'
-                      ? 'Run AI Search'
-                      : 'Start discovery'}
+                : credits === 0
+                  ? 'No credits remaining'
+                  : mode === 'ai'
+                    ? 'Run AI Search'
+                    : 'Start discovery'}
             </button>
           </div>
         </div>
