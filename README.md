@@ -24,7 +24,7 @@ Deployed on **Render** (one Docker web service running the API and worker) with 
 
 Both options seed demo data and need no configuration. No `.env` is required.
 
-**Docker, one command:**
+**Docker, one command: (Keep Docker Desktop open in the background)**
 
 ```bash
 docker compose up --build
@@ -32,16 +32,15 @@ docker compose up --build
 
 Open http://localhost:3000. A database viewer (Adminer) is at http://localhost:8081.
 
-**Node directly** (Node 20+ and a local Postgres):
+Log in with to the db:
 
-```bash
-npm ci
-npm run db:migrate
-npm run db:seed
-npm run dev
-```
-
-Frontend on http://localhost:5173, API on http://localhost:3000.
+| Field      | Value           |
+| ---------- | --------------- |
+| System     | `PostgreSQL`    |
+| Server     | `db`            |
+| Username   | `postgres`      |
+| Password   | `postgres`      |
+| Database   | `lead_pipeline` |
 
 To use real providers, add `TAVILY_API_KEY` (web search) and `GROQ_API_KEY` (AI search) to `.env`. **Without them the app uses deterministic mock data and shows a demo banner.**
 
